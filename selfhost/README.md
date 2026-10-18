@@ -1,0 +1,36 @@
+# Self-hosting (emiliensabathier.fr)
+
+Finance variant of World Monitor branded "Sabathier Terminal", served at the root of
+https://emiliensabathier.fr behind Caddy (container on `127.0.0.1:3200`).
+
+| Piece | Where on the VPS |
+|---|---|
+| Working copy (this repo, branch `sabathier-terminal`) | `~/projets/worldmonitor/app` |
+| Compose project, `.env` (API keys, mode 600) | `/opt/worldmonitor` |
+| Seeders | `worldmonitor-seed.timer` -> `/opt/worldmonitor/scripts/run-seeders.sh` |
+| LLM shim in front of `claude -p` | `wmllm.service`, code in `/home/wmllm/app` (copy of `selfhost/wmllm/`) |
+| AGPL source offer | `/var/www/labs-hub/source.txt` (served at `/labs/source.txt`) |
+
+## Deploy
+
+```sh
+git push               # deploy.sh refuses a dirty or unpushed tree
+./selfhost/deploy.sh   # build, restart, health check, republish source.txt, prune
+```
+
+The build needs ~2-3 GB of RAM; avoid running it while another app is building.
+
+## LLM shim
+
+```sh
+sudo install -o wmllm -g wmllm -m 644 selfhost/wmllm/server.mjs /home/wmllm/app/server.mjs
+sudo cp selfhost/wmllm/wmllm.service /etc/systemd/system/ && sudo systemctl daemon-reload
+sudo systemctl restart wmllm
+```
+
+`/home/wmllm/.env` holds `WMLLM_API_KEY`, `WMLLM_HOSTS` and `CLAUDE_CODE_OAUTH_TOKEN`; never commit it.
+
+## Upstream
+
+`upstream` remote = koala73/worldmonitor. After merging upstream, bump `UPSTREAM_COMMIT`
+in `deploy.sh` so the source offer stays accurate.
