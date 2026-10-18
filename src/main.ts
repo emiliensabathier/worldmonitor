@@ -26,6 +26,11 @@ if (SITE_VARIANT === 'happy') {
   void loadVariantThemeStylesheet('happy', () => import('./styles/happy-theme.css'));
 }
 
+if (SITE_VARIANT === 'finance') {
+  // Sabathier theme for the emiliensabathier.fr deployment, loaded like happy-theme.css.
+  void loadVariantThemeStylesheet('finance', () => import('./styles/sabathier-theme.css'));
+}
+
 // Activate the deferred dashboard app stylesheet. The build
 // (deferDashboardStylesheetLinks in vite.config.ts) emits the large dashboard
 // CSS as <link media="print" data-wm-deferred-style="dashboard"> + a <noscript>

@@ -1,0 +1,108 @@
+@import './sabathier-tokens.css';
+
+/* Sabathier theme (finance variant, emiliensabathier.fr): maps World Monitor's variables onto the
+   site's design tokens (sabathier-tokens.css, generated) and restyles the chrome. Unlayered, like
+   happy-theme.css, so it wins over the layered base. Severity colours are deliberately untouched. */
+
+:root[data-variant="finance"] {
+  --bg: var(--paper);
+  --bg-secondary: #f6f6f2;
+  --surface: var(--paper);
+  --surface-hover: #f3f4f1;
+  --surface-active: var(--pen-wash);
+  --border: var(--rule);
+  --border-strong: #c4c8ce;
+  --border-subtle: #eceef0;
+  --text: var(--ink);
+  --text-secondary: #2c3038;
+  --text-dim: var(--muted);
+  --text-muted: var(--muted);
+  --text-faint: #6b717b;
+  --text-ghost: #8a9099;
+  --accent: var(--pen);
+  --input-bg: #ffffff;
+  --panel-bg: var(--paper);
+  --panel-border: var(--rule);
+  --scrollbar-thumb: #c4c8ce;
+  --scrollbar-thumb-hover: #9aa1ab;
+  --green: var(--up);
+  --red: var(--down);
+  --semantic-positive: var(--up);
+  --status-live: var(--up);
+  --font-body-base: var(--sans);
+  --font-body: var(--sans);
+  --font-mono: var(--sans);
+}
+
+:root[data-variant="finance"][data-theme="dark"] {
+  --bg-secondary: #16181c;
+  --surface-hover: #1b1d22;
+  --border-strong: #41454d;
+  --border-subtle: #1f2126;
+  --text-secondary: #c9ccd1;
+  --text-faint: #8b929c;
+  --text-ghost: #6c727b;
+  --input-bg: #17191d;
+  --scrollbar-thumb: #41454d;
+  --scrollbar-thumb-hover: #6c727b;
+}
+
+/* Base type: one sans family, tabular figures everywhere. */
+[data-variant="finance"] body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Site nav above the toolbar. */
+[data-variant="finance"] .es-nav { position: relative; z-index: 20; }
+[data-variant="finance"] .es-nav .es-nav-inner { padding-inline: 20px; }
+
+/* Toolbar (former header): one quiet line under the nav. */
+[data-variant="finance"] .header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: none;
+  min-height: 44px;
+}
+[data-variant="finance"] .header :is(.logo, .logo-mobile, .version, .beta-badge, .credit-link, .github-link, #embedLinkBtn, #tvModeBtn) {
+  display: none;
+}
+
+/* Panels: no box, a rule on top, serif titles in sentence case. */
+[data-variant="finance"] .panel {
+  background: var(--paper);
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-variant="finance"] .panel-header {
+  background: transparent;
+  border-bottom: 1px solid var(--rule);
+}
+[data-variant="finance"] .panel-title {
+  font: 600 1.02rem/1.25 var(--serif);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+/* Controls: sans, no forced capitals, one radius, pen blue for the active state (never green). */
+[data-variant="finance"] :is(button, select, input, .copy-link-btn, .search-btn) {
+  font-family: var(--sans);
+  text-transform: none;
+  letter-spacing: normal;
+  border-radius: var(--radius);
+}
+[data-variant="finance"] :is(.active, [aria-pressed="true"], [aria-selected="true"], .mission-preset-button--active):not(.es-nav *) {
+  color: var(--pen);
+  border-color: var(--pen);
+  background-color: var(--pen-wash);
+  box-shadow: none;
+}
+
+/* Footer: the site's footer; the technical coverage line is hidden. */
+[data-variant="finance"] .site-footer.es-foot { display: block; background: var(--paper); }
+[data-variant="finance"] .site-footer .digest-coverage-row { display: none; }
