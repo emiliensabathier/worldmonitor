@@ -46,7 +46,8 @@ import {
 } from '@/config';
 import { BETA_MODE } from '@/config/beta';
 import { NQ_PULSE_DISCLOSURE } from '@/config/nq-context';
-import { t } from '@/services/i18n';
+import { getCurrentLanguage, t } from '@/services/i18n';
+import { mountSiteNav, renderSiteNav } from '@/app/site-nav';
 import { getCurrentTheme } from '@/utils';
 import { trackCriticalBannerAction, trackCheckoutSuccess, trackCheckoutFailed, trackGateHit, trackMapViewChange, trackLayoutCustomized, replayPendingCheckoutSuccess, replayPendingProFunnelEvents, replayPendingConversionEvents, replayPendingMissionReturn } from '@/services/analytics';
 import { ProPreviewSection } from '@/components/ProPreviewSection';
@@ -1045,10 +1046,13 @@ export class PanelLayoutManager implements AppModule {
 
     markLcpDebug('wm:layout:render-start');
     document.documentElement.classList.add('wm-layout-hydrated');
+    // emiliensabathier.fr deployment: site nav above the Terminal toolbar (web finance build only).
+    const esSite = SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp;
     setTrustedHtml(this.ctx.container, trustedHtml(`
       ${this.ctx.isDesktopApp ? '<div class="tauri-titlebar" data-tauri-drag-region></div>' : ''}
       <a href="#main" class="skip-link">Skip to main content</a>
       <div id="proBannerSlot" class="pro-banner-slot" aria-live="polite"></div>
+      ${esSite ? renderSiteNav(getCurrentLanguage()) : ''}
       <div class="header" role="banner">
         <div class="header-left">
           <div class="variant-switcher"${this.ctx.isDesktopApp ? '' : ' style="display:none"'}>${(() => {
@@ -1142,7 +1146,6 @@ export class PanelLayoutManager implements AppModule {
           </button>
         </div>
         <div class="header-right">
-          ${this.ctx.isDesktopApp ? '' : `<a class="copy-link-btn" href="/labs/">Labs</a><a class="copy-link-btn" href="/labs/source.txt">Source</a>`}
           <button class="search-btn" id="searchBtn"><kbd>⌘K</kbd> ${t('header.search')}</button>
           ${this.ctx.isDesktopApp ? '' : `<button class="copy-link-btn" id="copyLinkBtn">${t('header.copyLink')}</button>`}
           ${this.ctx.isDesktopApp ? '' : `<button class="copy-link-btn embed-link-btn" id="embedLinkBtn">${t('header.embed')}</button>`}
@@ -1286,21 +1289,11 @@ export class PanelLayoutManager implements AppModule {
           <span class="mobile-tab-icon" aria-hidden="true">•••</span><span>More</span>
         </button>
       </nav>
-      <footer class="site-footer">
-        <div class="site-footer-brand">
-          <img src="/favico/android-chrome-96x96.png" alt="" width="28" height="28" loading="lazy" decoding="async" class="site-footer-icon" />
-          <div class="site-footer-brand-text">
-            <span class="site-footer-name">SABATHIER TERMINAL</span>
-            <span class="site-footer-sub">Emilien Sabathier &middot; <a href="/labs/" class="site-footer-credit">finance labs</a></span>
-          </div>
+      <footer class="site-footer es-foot">
+        <div class="es-foot-inner">
+          <span>Emilien Sabathier &middot; Rouen</span>
+          <span><a href="/labs/source.txt">Source (AGPL-3.0)</a> &middot; <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">Built on World Monitor</a></span>
         </div>
-        <nav aria-label="Site references">
-          <a href="/labs/">Labs</a>
-          <a href="https://github.com/emiliensabathier" target="_blank" rel="noopener">GitHub</a>
-          <a href="/labs/source.txt">Source (AGPL-3.0)</a>
-          <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">Built on World Monitor</a>
-        </nav>
-        <span class="site-footer-copy">Emilien Sabathier</span>
       </footer>
     `, "legacy direct innerHTML migration"));
     // Mark AFTER the innerHTML swap so the timestamp reflects when the new shell
@@ -1308,6 +1301,7 @@ export class PanelLayoutManager implements AppModule {
     // earlier than any LCP candidate in the new shell, making it useless for
     // ordering the LCP element against the shell swap (PR #4512 review).
     markLcpDebug('wm:layout:shell-replaced');
+    if (esSite) mountSiteNav(this.ctx.container);
 
     // Skip link: explicitly move focus to <main> on activation. Native
     // fragment focus on a tabindex="-1" target is inconsistent across
