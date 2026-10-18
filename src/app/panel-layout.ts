@@ -230,6 +230,15 @@ const WEB_CLERK_PRO_ONLY_PANELS = new Set([
 const LATE_REGISTERED_PANEL_KEYS = new Set(['live-news']);
 const CW_PRO_GATE_TAB_RECOVERY_KEY = 'worldmonitor-cw-pro-gate-tab-recovery-v1';
 
+// Upstream reference pages, still linked from the mobile menu of non-Sabathier builds.
+const DASHBOARD_REFERENCE_LINKS = [
+  { label: 'Countries', path: '/countries/' },
+  { label: 'Chokepoints', path: '/chokepoints/' },
+  { label: 'Crises', path: '/crises/' },
+  { label: 'Tools', path: '/tools/' },
+  { label: 'Accuracy', path: '/accuracy/' },
+] as const;
+
 export const VARIANT_SWITCHER_DASHBOARD_URLS = {
   full: 'https://www.worldmonitor.app/dashboard',
   tech: 'https://tech.worldmonitor.app/dashboard',
@@ -1213,6 +1222,7 @@ export class PanelLayoutManager implements AppModule {
         </a>
         <div class="mobile-menu-divider"></div>
         <div class="mobile-menu-footer-links">
+          ${SITE_VARIANT === 'finance' ? '' : DASHBOARD_REFERENCE_LINKS.map(({ label, path }) => `<a href="${path}" target="_blank" rel="noopener">${label}</a>`).join('')}
           <a href="/labs/source.txt">Source (AGPL-3.0)</a>
           <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">Built on World Monitor</a>
         </div>

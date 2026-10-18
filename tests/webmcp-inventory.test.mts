@@ -666,7 +666,7 @@ describe('WebMCP canonical inventories', () => {
     const expectedConditional = {
       full: ['search_procurement'],
       tech: ['search_procurement'],
-      finance: ['search_procurement'],
+      finance: [],
       happy: [],
       commodity: [],
       energy: [],

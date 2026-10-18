@@ -205,6 +205,7 @@ export const COMMANDS: Command[] = [
   { id: 'panel:fao-food-price-index', keywords: ['fao', 'food price index', 'ffpi', 'food prices', 'cereals', 'fao food', 'global food prices', 'food inflation'], label: 'Panel: FAO Food Price Index', icon: '\u{1F33E}', category: 'panels' },
   { id: 'panel:national-debt', keywords: ['national debt', 'debt clock', 'government debt', 'deficit'], label: 'Panel: National Debt Clock', icon: '\u{1F4B8}', category: 'panels' },
   { id: 'panel:fsi', keywords: ['fsi', 'financial stress', 'financial stress indicator', 'systemic risk'], label: 'Panel: Financial Stress Indicator', icon: '\u{1F4C9}', category: 'panels' },
+  { id: 'panel:finance-labs', keywords: ['labs', 'finance labs', 'research', 'studies', 'term premium', 'implied volatility'], label: 'Panel: Finance Labs', icon: '\u{1F52C}', category: 'panels' },
   { id: 'panel:nq-pulse', keywords: ['nq pulse', 'nasdaq futures', 'emini nasdaq', 'nq=f', 'vxn', 'qqq context'], label: 'Panel: NQ Pulse', icon: '\u{1F4C8}', category: 'panels' },
   { id: 'panel:nq-catalysts', keywords: ['nq catalysts', 'nasdaq earnings', 'us macro calendar', 'fomc nq', 'influence basket'], label: 'Panel: NQ Catalysts', icon: '\u{1F4C5}', category: 'panels' },
   { id: 'panel:nq-news', keywords: ['nq news', 'nasdaq futures news', 'qqq headlines', 'fed press', 'semiconductor news'], label: 'Panel: NQ News', icon: '\u{1F4F0}', category: 'panels' },
