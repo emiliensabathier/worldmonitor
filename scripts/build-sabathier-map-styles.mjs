@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 export const PALETTES = {
   light: { land: '#fbfaf6', water: '#e3e9f3', border: '#c9cdd3', road: '#eceef0', label: '#5e6570', halo: '#fbfaf6' },
-  dark: { land: '#1a1c21', water: '#0f1420', border: '#3a3e46', road: '#24272d', label: '#9aa1ab', halo: '#121316' },
+  dark: { land: '#1a1c21', water: '#0f1420', border: '#3a3e46', road: '#24272d', label: '#9aa1ab', halo: '#1a1c21' },
 };
 
 const HIDE = /^(building|housenumber|poi_|aeroway|boundary_(county|state)|park_|landuse)/;
@@ -33,6 +33,7 @@ export function repaint(style, p, name) {
     } else if (l.type === 'symbol') {
       l.paint['text-color'] = p.label;
       l.paint['text-halo-color'] = p.halo;
+      if ('icon-color' in l.paint) l.paint['icon-color'] = p.label; // city dots: no green
     }
   }
   return s;

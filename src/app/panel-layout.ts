@@ -1305,7 +1305,7 @@ export class PanelLayoutManager implements AppModule {
       <footer class="site-footer es-foot">
         <div class="es-foot-inner">
           <span>Emilien Sabathier &middot; Rouen</span>
-          <span><a href="/labs/source.txt">Source (AGPL-3.0)</a> &middot; <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">Built on World Monitor</a></span>
+          <span><a href="/labs/source.txt">${getCurrentLanguage() === 'fr' ? 'Code source (AGPL-3.0)' : 'Source (AGPL-3.0)'}</a> &middot; <a href="https://github.com/koala73/worldmonitor" target="_blank" rel="noopener">${getCurrentLanguage() === 'fr' ? 'Basé sur World Monitor' : 'Built on World Monitor'}</a></span>
         </div>
       </footer>
     `, "legacy direct innerHTML migration"));

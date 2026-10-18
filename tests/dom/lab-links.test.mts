@@ -48,3 +48,15 @@ describe('lab links', () => {
     expect(panel.querySelector('.es-lab-link')).toBeNull();
   });
 });
+
+describe('lab link targets', () => {
+  it('opens studies in a new tab and refuses non-https targets', async () => {
+    const panel = document.createElement('div');
+    panel.innerHTML = '<div class="panel-content"></div>';
+    await attachLabLinks('yield-curve', panel, 'en', async () => ({ labs: [{ tag: 'rates-lab', question: 'Q', report: 'https://r/' }], fr: {} }));
+    const a = panel.querySelector('.es-lab-link a')!;
+    expect(a.getAttribute('target')).toBe('_blank');
+    expect(a.getAttribute('rel')).toBe('noopener');
+    expect(resolveLabLinks('yield-curve', [{ tag: 'rates-lab', question: 'Q', report: 'javascript:alert(1)' }], {}, 'en')).toEqual([]);
+  });
+});

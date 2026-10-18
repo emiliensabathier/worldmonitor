@@ -9,7 +9,7 @@ https://emiliensabathier.fr behind Caddy (container on `127.0.0.1:3200`).
 | Compose project, `.env` (API keys, mode 600) | `/opt/worldmonitor` |
 | Seeders | `worldmonitor-seed.timer` -> `/opt/worldmonitor/scripts/run-seeders.sh` |
 | LLM shim in front of `claude -p` | `wmllm.service`, code in `/home/wmllm/app` (copy of `selfhost/wmllm/`) |
-| AGPL source offer | `/var/www/labs-hub/source.txt` (served at `/labs/source.txt`) |
+| AGPL source offer | `/var/www/site/labs/source.txt` (served at `/labs/source.txt`, repo emiliensabathier/site) |
 
 ## Deploy
 

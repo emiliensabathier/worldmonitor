@@ -20,3 +20,20 @@ test('the footer keeps its hook class, the AGPL source link and the upstream cre
   assert.match(src, /Built on World Monitor/);
   assert.doesNotMatch(src, /SABATHIER TERMINAL<\/span>\s*<span class="site-footer-sub">/);
 });
+
+test('the footer speaks French on a French Terminal', () => {
+  assert.match(src, /Basé sur World Monitor/);
+});
+
+test('restoring the desk asks through the in-app confirm dialog', () => {
+  const eh = readFileSync(new URL('../src/app/event-handlers.ts', import.meta.url), 'utf8');
+  const restore = eh.slice(eh.indexOf('restoreDesk:'), eh.indexOf(': undefined,', eh.indexOf('restoreDesk:')));
+  assert.match(restore, /await import\('@\/components\/confirm-dialog'\)/);
+  assert.doesNotMatch(restore, /window\.confirm\(/);
+});
+
+test('self-host tooling: memory-capped checks, fonts shipped with their licence', () => {
+  const check = readFileSync(new URL('../selfhost/check.sh', import.meta.url), 'utf8');
+  assert.match(check, /--memory=3g/);
+  assert.ok(readFileSync(new URL('../public/site-fonts/OFL.txt', import.meta.url), 'utf8').includes('SIL OPEN FONT LICENSE'));
+});

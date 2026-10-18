@@ -57,3 +57,11 @@ describe('formatSynthesisStamp', () => {
     expect(formatSynthesisStamp(full.asOf!, 'en')).toBe('18 Oct, 00:29');
   });
 });
+
+describe('firstSentences length cap', () => {
+  it('never returns more than 320 characters, even when no sentence break is found', () => {
+    const out = firstSentences('word '.repeat(200), 2);
+    expect(out.length).toBeLessThanOrEqual(320);
+    expect(out.endsWith('…')).toBe(true);
+  });
+});

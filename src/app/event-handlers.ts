@@ -2273,10 +2273,15 @@ export class EventHandlerManager implements AppModule {
         window.location.reload();
       },
       restoreDesk: SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp
-        ? () => {
+        ? async () => {
           // <html lang> is set by i18n; read it rather than importing more of i18n (tests stub that module).
           const fr = document.documentElement.lang.toLowerCase().startsWith('fr');
-          if (!window.confirm(fr ? 'Rétablir les six onglets du bureau Sabathier ? Vos onglets actuels seront remplacés.' : 'Restore the six Sabathier desk tabs? Your current tabs will be replaced.')) return;
+          const { confirmDialog } = await import('@/components/confirm-dialog');
+          const ok = await confirmDialog({
+            message: fr ? 'Rétablir les six onglets du bureau Sabathier ? Vos onglets actuels seront remplacés.' : 'Restore the six Sabathier desk tabs? Your current tabs will be replaced.',
+            confirmLabel: fr ? 'Rétablir' : 'Restore',
+          });
+          if (!ok) return;
           clearTabsState();
           window.location.reload();
         }

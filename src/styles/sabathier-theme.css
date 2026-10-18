@@ -30,7 +30,6 @@
   --semantic-positive: var(--up);
   --status-live: var(--up);
   --font-body-base: var(--sans);
-  --font-body: var(--sans);
   --font-mono: var(--sans);
   /* 2D map, drawn from these variables: wash water, paper land, hairline borders, grid hidden. */
   --map-bg: #e3e9f3;
@@ -69,7 +68,7 @@
 [data-variant="finance"] body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--sans);
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums lining-nums;
 }
 
@@ -101,14 +100,17 @@
   border-bottom: 1px solid var(--rule);
 }
 [data-variant="finance"] .panel-title {
-  font: 600 1.02rem/1.25 var(--serif);
+  font-family: var(--serif);
+  font-weight: 600;
+  line-height: 1.25;
+  font-size: calc(1.02rem * var(--wm-panel-effective-scale, 1));
   text-transform: none;
   letter-spacing: 0;
   color: var(--ink);
 }
 
 /* Controls: sans, no forced capitals, one radius, pen blue for the active state (never green). */
-[data-variant="finance"] :is(button, select, input, .copy-link-btn, .search-btn) {
+[data-variant="finance"] :is(.header, .panel-header) :is(button, select, .copy-link-btn, .search-btn) {
   font-family: var(--sans);
   text-transform: none;
   letter-spacing: normal;
@@ -206,3 +208,23 @@
 }
 [data-variant="finance"] .es-lab-link a { color: var(--pen); text-decoration: none; }
 [data-variant="finance"] .es-lab-link a:hover { text-decoration: underline; }
+
+/* Remaining upstream accents: the new-data panel flash and small capital labels. */
+[data-variant="finance"] .panel.flash-new::after {
+  box-shadow: 0 0 0 2px var(--pen-wash), 0 0 16px var(--pen);
+}
+[data-variant="finance"] :is(.time-slider-label, .insights-section-title, .live-media-shell-status) {
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--muted);
+}
+
+/* Synthesis figures: upstream gives every mobile button a 44px minimum; keep a compact 32px target. */
+[data-variant="finance"] .es-syn-item {
+  min-height: 32px;
+  padding: 4px 2px;
+}
+[data-variant="finance"] .es-syn-item:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
+}

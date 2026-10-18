@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build the working tree as worldmonitor:preview and run it on 127.0.0.1:3201 next to production,
 # with production's environment and network (same Redis, same keys). Stop: ./selfhost/preview.sh stop
+# Caution: the preview writes caches to the production Redis; only preview builds that keep its key formats.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 NAME=wm-preview

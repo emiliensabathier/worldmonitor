@@ -27,7 +27,7 @@ function labelsFor(lang: string): NavLabels {
 
 export function renderSiteNav(lang: string): string {
   const l = labelsFor(lang);
-  return `<header class="es-nav"><div class="es-nav-inner">
+  return `<div class="es-nav"><div class="es-nav-inner">
 <a class="es-nav-mark" href="${l.homeHref}">Emilien Sabathier</a>
 <nav aria-label="${l.label}"><ul class="es-nav-links">
 <li><a href="${l.homeHref}">${l.home}</a></li>
@@ -37,7 +37,7 @@ export function renderSiteNav(lang: string): string {
 <li><a href="${l.otherHref}" lang="${l.otherLang}" hreflang="${l.otherLang}">${l.other}</a></li>
 <li><button type="button" class="es-nav-theme" data-theme-toggle data-label-auto="${l.auto}" data-label-light="${l.light}" data-label-dark="${l.dark}">${l.auto}</button></li>
 </ul></nav>
-</div></header>`;
+</div></div>`;
 }
 
 const NEXT: Record<ThemePreference, ThemePreference> = { auto: 'light', light: 'dark', dark: 'auto' };

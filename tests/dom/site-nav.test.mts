@@ -14,7 +14,8 @@ afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = ''; localStora
 describe('renderSiteNav', () => {
   it('renders the site nav in English with Terminal as current page', () => {
     const html = renderSiteNav('en');
-    expect(html).toContain('<header class="es-nav">');
+    expect(html).toContain('<div class="es-nav">');
+    expect(html).not.toContain('<header');
     expect(html).toContain('<a href="/terminal/" aria-current="page">Terminal</a>');
     expect(html).toContain('<a href="/">Home</a>');
     expect(html).toContain('<a href="/cv/emilien-sabathier-cv-en.pdf">CV</a>');

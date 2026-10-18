@@ -44,3 +44,23 @@ describe('SynthesisBar', () => {
     expect(new SynthesisBar({ load: async () => data, lang: 'fr', onSelectDesk: () => {} }).getElement().getAttribute('aria-label')).toBe('Synthèse du jour');
   });
 });
+
+describe('SynthesisBar lifecycle', () => {
+  it('defers the first load off the startup path, and refreshes on return when stale', async () => {
+    vi.useFakeTimers();
+    try {
+      const load = vi.fn(async () => data);
+      const bar = new SynthesisBar({ load, lang: 'en', onSelectDesk: () => {} });
+      bar.start(300_000, 1_500);
+      expect(load).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(load).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(301_000);
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(load.mock.calls.length).toBeGreaterThanOrEqual(2);
+      bar.stop();
+    } finally { vi.useRealTimers(); }
+  });
+});

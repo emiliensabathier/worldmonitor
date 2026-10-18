@@ -39,11 +39,15 @@ function updateThemeMetaColor(theme: Theme, variant = document.documentElement.d
 }
 
 export function getThemePreference(): ThemePreference {
+  // Sabathier: the shared cookie (written by the site, analyse. and this Terminal) is the reference.
+  if (isSabathierVariant()) {
+    const shared = readSharedThemeCookie();
+    if (shared) return shared;
+  }
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'auto' || stored === 'dark' || stored === 'light') return stored;
   } catch { /* noop */ }
-  if (isSabathierVariant()) return readSharedThemeCookie() ?? 'auto';
   return 'auto';
 }
 
@@ -119,7 +123,7 @@ export function applyStoredTheme(): void {
   // Check raw localStorage to distinguish "no preference" from "explicitly chose dark"
   let raw: string | null = null;
   try { raw = localStorage.getItem(STORAGE_KEY); } catch { /* noop */ }
-  if (raw === null && variant === 'finance') raw = readSharedThemeCookie();
+  if (variant === 'finance') raw = readSharedThemeCookie() ?? raw;
   const hasExplicitPreference = raw === 'dark' || raw === 'light' || raw === 'auto';
 
   let effective: Theme;

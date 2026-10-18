@@ -86,3 +86,27 @@ test('suggested Mission button and live data badge drop their hard-coded greens'
 test('on mobile the near-empty toolbar is hidden (only the live dot was left)', () => {
   assert.match(css, /@media \(max-width: 768px\)\s*\{[^@]*\[data-variant="finance"\] \.header\s*\{\s*display:\s*none;/);
 });
+
+test('control radius only on toolbar and panel-header controls (round buttons and sliders stay round)', () => {
+  assert.doesNotMatch(css, /\[data-variant="finance"\] :is\(button, select, input, \.copy-link-btn, \.search-btn\)/);
+  assert.match(css, /\[data-variant="finance"\] :is\(\.header, \.panel-header\) :is\(button, select, \.copy-link-btn, \.search-btn\)/);
+});
+
+test('panel titles keep the per-panel font scale', () => {
+  assert.match(css, /\.panel-title\s*\{[^}]*font-size:\s*calc\(1\.02rem \* var\(--wm-panel-effective-scale, 1\)\)/);
+});
+
+test('RTL and CJK font stacks survive (only the base font is replaced)', () => {
+  assert.doesNotMatch(css, /--font-body:\s*var\(--sans\)/);
+  assert.match(css, /\[data-variant="finance"\] body\s*\{[^}]*font-family:\s*var\(--font-body\)/);
+});
+
+test('panel flash halo and small capital labels use the site palette', () => {
+  assert.match(css, /\.panel\.flash-new::after\s*\{[^}]*box-shadow:[^;]*var\(--pen\)|\.panel\.flash-new::after\s*\{[^}]*box-shadow:\s*0 0 0 2px var\(--pen-wash\)/);
+  assert.match(css, /:is\(\.time-slider-label, \.insights-section-title, \.live-media-shell-status\)\s*\{[^}]*letter-spacing:\s*\.04em/);
+});
+
+test('synthesis figures: compact touch target and visible keyboard focus', () => {
+  assert.match(css, /\.es-syn-item\s*\{[^}]*min-height:\s*32px/);
+  assert.match(css, /\.es-syn-item:focus-visible\s*\{[^}]*outline/);
+});

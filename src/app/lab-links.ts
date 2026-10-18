@@ -17,7 +17,7 @@ export function resolveLabLinks(panelKey: string, labs: Lab[], fr: LabsData['fr'
   const isFr = lang.toLowerCase().startsWith('fr');
   return (LAB_LINKS[panelKey] ?? []).flatMap((tag) => {
     const lab = labs.find((l) => l.tag === tag);
-    if (!lab || typeof lab.report !== 'string' || typeof lab.question !== 'string') return [];
+    if (!lab || typeof lab.report !== 'string' || !lab.report.startsWith('https://') || typeof lab.question !== 'string') return [];
     const live = tag.includes('· live');
     const question = (isFr && fr[tag]?.question) || lab.question;
     const lead = isFr ? (live ? 'Outil lié : ' : 'Étude liée : ') : (live ? 'Related tool: ' : 'Related study: ');
@@ -46,6 +46,8 @@ export async function attachLabLinks(panelKey: string, panelEl: HTMLElement, lan
   for (const l of links) {
     const a = document.createElement('a');
     a.href = l.href;
+    a.target = '_blank';
+    a.rel = 'noopener';
     a.textContent = l.text;
     row.append(a);
   }

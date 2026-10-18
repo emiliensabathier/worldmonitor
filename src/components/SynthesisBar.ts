@@ -5,6 +5,11 @@ import { buildSynthesisItems, firstSentences, formatSynthesisStamp, type Synthes
 export class SynthesisBar {
   private readonly el: HTMLElement;
   private timer: ReturnType<typeof setInterval> | null = null;
+  private lastLoad = 0;
+  private readonly onVisible = () => {
+    if (document.visibilityState === 'visible' && Date.now() - this.lastLoad > this.intervalMs) void this.refresh();
+  };
+  private intervalMs = 5 * 60_000;
 
   constructor(private readonly opts: { load: () => Promise<SynthesisData>; lang: string; onSelectDesk: (k: DeskKey) => void }) {
     this.el = document.createElement('section');
@@ -17,6 +22,7 @@ export class SynthesisBar {
 
   async refresh(): Promise<void> {
     let data: SynthesisData;
+    this.lastLoad = Date.now();
     try { data = await this.opts.load(); } catch { return; } // keep what is shown
     const items = buildSynthesisItems(data, this.opts.lang);
     const brief = data.brief ? firstSentences(data.brief, 2) : '';
@@ -56,11 +62,18 @@ export class SynthesisBar {
     this.el.hidden = items.length === 0 && !brief;
   }
 
-  start(intervalMs = 5 * 60_000): void {
-    void this.refresh();
+  /** First load after `delayMs` (off the startup path), then every `intervalMs` while visible. */
+  start(intervalMs = 5 * 60_000, delayMs = 1_500): void {
     this.stop();
+    this.intervalMs = intervalMs;
+    setTimeout(() => void this.refresh(), delayMs);
     this.timer = setInterval(() => { if (document.visibilityState === 'visible') void this.refresh(); }, intervalMs);
+    document.addEventListener('visibilitychange', this.onVisible);
   }
 
-  stop(): void { if (this.timer) clearInterval(this.timer); this.timer = null; }
+  stop(): void {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+    document.removeEventListener('visibilitychange', this.onVisible);
+  }
 }

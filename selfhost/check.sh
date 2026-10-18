@@ -7,4 +7,4 @@ sudo docker buildx build -q -f selfhost/Dockerfile.check -t worldmonitor-check:l
 # Each run rebuilds the source layer: drop the build cache it orphans (the disk is shared and
 # nearly full), keeping the cached npm ci layer that the current image still references.
 trap 'sudo docker builder prune -f >/dev/null 2>&1 || true' EXIT
-sudo docker run --rm -e NODE_OPTIONS=--max-old-space-size=3072 worldmonitor-check:latest "$@"
+sudo docker run --rm --memory=3g -e NODE_OPTIONS=--max-old-space-size=2560 worldmonitor-check:latest "$@"

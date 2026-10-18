@@ -8373,8 +8373,9 @@ export class DeckGLMap {
     const seq = ++this.basemapSwitchSeq;
     const provider = getMapProvider();
     const mapTheme = getMapTheme(provider);
+    // A variant map that already fell back (Carto unreachable) stays on the fallback style.
     const style = usesVariantBasemap
-      ? variantBasemapStyle(getCurrentTheme())
+      ? (this.usedFallbackStyle ? (getCurrentTheme() === 'light' ? FALLBACK_LIGHT_STYLE : FALLBACK_DARK_STYLE) : variantBasemapStyle(getCurrentTheme()))
       : (this.usedFallbackStyle && provider === 'auto')
         ? (isLightMapTheme(mapTheme) ? FALLBACK_LIGHT_STYLE : FALLBACK_DARK_STYLE)
         : await getStyleForProvider(provider, mapTheme);
@@ -8386,7 +8387,7 @@ export class DeckGLMap {
       localizeMapLabels(this.maplibreMap);
       this.loadCountryBoundaries();
       if (this.radarActive) this.applyRadarLayer();
-      const paintTheme = isLightMapTheme(mapTheme) ? 'light' as const : 'dark' as const;
+      const paintTheme = usesVariantBasemap ? getCurrentTheme() : (isLightMapTheme(mapTheme) ? 'light' as const : 'dark' as const);
       this.updateCountryLayerPaint(paintTheme);
       this.render();
     });

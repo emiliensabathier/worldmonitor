@@ -64,7 +64,9 @@ export function firstSentences(text: string, n: number): string {
     ends.push(m.index + 1);
     if (ends.length === n) break;
   }
-  return ends.length === n ? s.slice(0, ends[n - 1]) : s;
+  const picked = ends.length === n ? s.slice(0, ends[n - 1]) : s;
+  // Hard cap: a brief whose sentences could not be split must not flood the band.
+  return picked.length <= 320 ? picked : `${picked.slice(0, 319).trimEnd()}…`;
 }
 
 export function formatSynthesisStamp(ms: number, lang: string): string {

@@ -11,6 +11,8 @@ import { getSentryBuildMetadata } from './shared/sentry-build-metadata';
 import { appendChunkOwnership, chunkHasFirstPartyModule } from './shared/chunk-ownership';
 import { VARIANT_META, type VariantMeta } from './src/config/variant-meta';
 import { bakeVariantIntoPrepaint } from './shared/variant-prepaint.mjs';
+import { criticalSabathierCss } from './shared/sabathier-critical.mjs';
+import { readFileSync } from 'fs';
 import {
   WEB_DASHBOARD_VARIANTS,
   renderVariantDashboardHtml,
@@ -271,6 +273,16 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
       // Desktop builds: inject build-time variant into the inline script so data-variant is set
       // before CSS loads. Web builds always use 'full' — runtime hostname detection handles variants.
       result = bakeVariantIntoPrepaint(result, activeVariant);
+
+      // Sabathier (finance) build: inline the palette so the first paint never shows upstream colours
+      // while sabathier-theme.css loads asynchronously (the CSP already allows inline styles).
+      if (activeVariant === 'finance') {
+        const critical = criticalSabathierCss(
+          readFileSync(resolve(__dirname, 'src/styles/sabathier-tokens.css'), 'utf8'),
+          readFileSync(resolve(__dirname, 'src/styles/sabathier-theme.css'), 'utf8'),
+        );
+        result = result.replace('</head>', `<style data-sabathier-critical>${critical}</style>\n</head>`);
+      }
 
       // Desktop CSP: inject localhost wildcard for dynamic sidecar port.
       // Web builds intentionally exclude localhost to avoid exposing attack surface.

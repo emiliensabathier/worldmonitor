@@ -30,3 +30,19 @@ test('DeckGLMap picks the Sabathier styles for the finance variant', () => {
   // The happy choice may only appear once: inside variantBasemapStyle().
   assert.equal(src.match(/\? HAPPY_LIGHT_STYLE : HAPPY_DARK_STYLE/g)?.length, 1, 'style choice must go through variantBasemapStyle()');
 });
+
+test('city dots use the label colour, and the dark halo matches the land', () => {
+  for (const theme of ['light', 'dark']) {
+    const s = read(`sabathier-${theme}.json`);
+    for (const l of s.layers.filter((x) => x.id.startsWith('place_') && x.paint?.['icon-color'] !== undefined)) {
+      assert.equal(l.paint['icon-color'], PALETTES[theme].label, l.id);
+    }
+  }
+  assert.equal(PALETTES.dark.halo, PALETTES.dark.land);
+});
+
+test('variant basemaps: hover paint follows the page theme, and a fallback map stays on its fallback style', () => {
+  const src = readFileSync(new URL('../src/components/DeckGLMap.ts', import.meta.url), 'utf8');
+  assert.match(src, /const paintTheme = usesVariantBasemap \? getCurrentTheme\(\) : \(isLightMapTheme\(mapTheme\)/);
+  assert.match(src, /this\.usedFallbackStyle\s*\?\s*\(getCurrentTheme\(\) === 'light' \? FALLBACK_LIGHT_STYLE : FALLBACK_DARK_STYLE\)/);
+});

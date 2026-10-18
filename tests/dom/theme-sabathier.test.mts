@@ -32,10 +32,12 @@ describe('Sabathier shared theme cookie (finance variant)', () => {
     expect(getCurrentTheme()).toBe('dark');
   });
 
-  it('localStorage wins over the cookie (same origin, kept in sync by the site)', () => {
+  it('the shared cookie wins over a stale localStorage (choice made on analyse. or the site)', () => {
     document.cookie = 'es-theme=dark; Path=/';
     localStorage.setItem('worldmonitor-theme', 'light');
-    expect(getThemePreference()).toBe('light');
+    expect(getThemePreference()).toBe('dark');
+    applyStoredTheme();
+    expect(getCurrentTheme()).toBe('dark');
   });
 
   it('ignores an invalid cookie value', () => {
