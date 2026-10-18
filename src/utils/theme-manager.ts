@@ -6,7 +6,29 @@ export type ThemePreference = 'auto' | 'dark' | 'light';
 const STORAGE_KEY = 'worldmonitor-theme';
 const DEFAULT_THEME: Theme = 'dark';
 
+// Sabathier deployment (finance variant on emiliensabathier.fr): the theme choice is shared with the
+// site's other pages through the `es-theme` cookie (also readable from analyse. subdomain).
+const SHARED_COOKIE = 'es-theme';
+function isSabathierVariant(): boolean {
+  return typeof document !== 'undefined' && document.documentElement.dataset.variant === 'finance';
+}
+export function readSharedThemeCookie(): Theme | null {
+  if (typeof document === 'undefined') return null;
+  const m = /(?:^|;\s*)es-theme=(light|dark)(?:;|$)/.exec(document.cookie || '');
+  return m ? (m[1] as Theme) : null;
+}
+function writeSharedThemeCookie(pref: ThemePreference): void {
+  if (!isSabathierVariant()) return;
+  let attrs = '; Path=/; SameSite=Lax';
+  if (/(^|\.)emiliensabathier\.fr$/.test(location.hostname)) attrs += '; Domain=.emiliensabathier.fr';
+  if (location.protocol === 'https:') attrs += '; Secure';
+  document.cookie = pref === 'auto'
+    ? `${SHARED_COOKIE}=${attrs}; Max-Age=0`
+    : `${SHARED_COOKIE}=${pref}${attrs}; Max-Age=31536000`;
+}
+
 function resolveThemeColor(theme: Theme, variant: string | undefined): string {
+  if (variant === 'finance') return theme === 'dark' ? '#121316' : '#fdfdfb';
   if (theme === 'dark') return variant === 'happy' ? '#1A2332' : '#0a0f0a';
   return variant === 'happy' ? '#FAFAF5' : '#f8f9fa';
 }
@@ -21,6 +43,7 @@ export function getThemePreference(): ThemePreference {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'auto' || stored === 'dark' || stored === 'light') return stored;
   } catch { /* noop */ }
+  if (isSabathierVariant()) return readSharedThemeCookie() ?? 'auto';
   return 'auto';
 }
 
@@ -53,6 +76,7 @@ function updateAutoListener(pref: ThemePreference): void {
 
 export function setThemePreference(pref: ThemePreference): void {
   try { localStorage.setItem(STORAGE_KEY, pref); } catch { /* noop */ }
+  writeSharedThemeCookie(pref);
   updateAutoListener(pref);
   applyTheme(pref === 'auto' ? resolveAutoTheme() : pref);
 }
@@ -95,6 +119,7 @@ export function applyStoredTheme(): void {
   // Check raw localStorage to distinguish "no preference" from "explicitly chose dark"
   let raw: string | null = null;
   try { raw = localStorage.getItem(STORAGE_KEY); } catch { /* noop */ }
+  if (raw === null && variant === 'finance') raw = readSharedThemeCookie();
   const hasExplicitPreference = raw === 'dark' || raw === 'light' || raw === 'auto';
 
   let effective: Theme;
