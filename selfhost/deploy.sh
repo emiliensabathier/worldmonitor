@@ -7,8 +7,9 @@ set -euo pipefail
 
 UPSTREAM_COMMIT=8ddb53f36bb8aeaa10d50417dba36b016d65d3f0
 DEPLOY_DIR=/opt/worldmonitor
-SITE_URL=https://emiliensabathier.fr/
-SOURCE_OFFER=/var/www/labs-hub/source.txt
+SITE_URL=https://emiliensabathier.fr/terminal/
+# Served by the site (repo emiliensabathier/site) at /labs/source.txt; its deploy never deletes it.
+SOURCE_OFFER=/var/www/site/labs/source.txt
 BRANCH_URL=https://github.com/emiliensabathier/worldmonitor/tree/sabathier-terminal
 HEALTH_URL=http://127.0.0.1:3200/
 HEALTH_TRIES=30
@@ -56,7 +57,7 @@ EOF
   git diff "$UPSTREAM_COMMIT" HEAD -- . ':(exclude)public/favico' ':(exclude)public/favicon.ico'
   echo "# Binary icons under public/favico/ and public/favicon.ico replaced with an ES monogram (own artwork)."
 } > "$offer"
-sudo install -m 644 "$offer" "$SOURCE_OFFER"
+sudo install -D -m 644 "$offer" "$SOURCE_OFFER"
 rm -f "$offer"
 
 echo "== cleanup"
