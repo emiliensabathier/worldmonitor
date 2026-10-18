@@ -82,3 +82,7 @@ test('suggested Mission button and live data badge drop their hard-coded greens'
   assert.match(css, /\[data-variant="finance"\] \.mission-preset-button--suggested\s*\{\s*border-color:\s*var\(--pen\);/);
   assert.match(css, /\[data-variant="finance"\] \.panel-data-badge\.live\s*\{[^}]*border-color:\s*var\(--rule\);[^}]*background:\s*transparent;/);
 });
+
+test('on mobile the near-empty toolbar is hidden (only the live dot was left)', () => {
+  assert.match(css, /@media \(max-width: 768px\)\s*\{[^@]*\[data-variant="finance"\] \.header\s*\{\s*display:\s*none;/);
+});

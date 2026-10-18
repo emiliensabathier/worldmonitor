@@ -15,7 +15,7 @@ import {
 } from '@/config/panels';
 import { isProUser } from '@/services/widget-store';
 import { SITE_VARIANT } from '@/config/variant';
-import { t } from '@/services/i18n';
+import { getCurrentLanguage, t } from '@/services/i18n';
 import { createSettingsButton } from '@/components/settings-button';
 import { confirmDialog } from '@/components/confirm-dialog';
 import type { UnifiedSettingsTabId } from '@/components/settings-types';
@@ -88,6 +88,8 @@ export interface UnifiedSettingsConfig {
   getAllSourceNames: () => string[];
   getLocalizedPanelName: (key: string, fallback: string) => string;
   resetLayout: () => void;
+  /** Sabathier desk: rebuild the six predefined tabs (finance web build only). */
+  restoreDesk?: () => void;
   isDesktopApp: boolean;
   onMapProviderChange?: (provider: MapProvider) => void;
   /**
@@ -329,6 +331,11 @@ export class UnifiedSettings {
 
       if (target.closest('.panels-reset-layout')) {
         this.config.resetLayout();
+        return;
+      }
+
+      if (target.closest('.panels-restore-desk')) {
+        this.config.restoreDesk?.();
         return;
       }
 
@@ -924,6 +931,7 @@ export class UnifiedSettings {
             <span class="panels-status" id="usPanelsStatus" aria-live="polite"></span>
             <button class="panels-save-layout">${t('modals.story.save')}</button>
             <button class="panels-reset-layout" title="${t('header.resetLayoutTooltip')}" aria-label="${t('header.resetLayoutTooltip')}">${t('header.resetLayout')}</button>
+            ${this.config.restoreDesk ? `<button class="panels-restore-desk">${getCurrentLanguage() === 'fr' ? 'Rétablir le bureau Sabathier' : 'Restore Sabathier desk'}</button>` : ''}
           </div>
         </div>
         <div class="unified-settings-tab-panel${this.activeTab === 'sources' ? ' active' : ''}" data-panel-id="sources" id="us-tab-panel-sources" role="tabpanel" aria-labelledby="us-tab-sources">

@@ -104,6 +104,7 @@ import { WM_OPEN_NOTIFICATIONS_FOR_COUNTRY } from '@/utils/notify-country-link';
 import { AuthLauncher } from '@/components/AuthLauncher';
 import { AuthHeaderWidget } from '@/components/AuthHeaderWidget';
 import { t } from '@/services/i18n';
+import { clearTabsState } from '@/services/tab-store';
 import { TvModeController } from '@/services/tv-mode';
 import { getAuthState, subscribeAuthState } from '@/services/auth-state';
 import { hasEmbedAccessForAccount, onEntitlementChange } from '@/services/entitlements';
@@ -2271,6 +2272,15 @@ export class EventHandlerManager implements AppModule {
         removeStorageValue('map-side');
         window.location.reload();
       },
+      restoreDesk: SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp
+        ? () => {
+          // <html lang> is set by i18n; read it rather than importing more of i18n (tests stub that module).
+          const fr = document.documentElement.lang.toLowerCase().startsWith('fr');
+          if (!window.confirm(fr ? 'Rétablir les six onglets du bureau Sabathier ? Vos onglets actuels seront remplacés.' : 'Restore the six Sabathier desk tabs? Your current tabs will be replaced.')) return;
+          clearTabsState();
+          window.location.reload();
+        }
+        : undefined,
       isDesktopApp: this.ctx.isDesktopApp,
       onMapProviderChange: () => {
         this.ctx.map?.reloadBasemap();

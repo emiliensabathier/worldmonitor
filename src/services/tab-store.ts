@@ -1,6 +1,7 @@
 import type { PanelConfig } from '@/types';
 import { SITE_VARIANT } from '@/config/variant';
 import { resetMissionPresetState } from '@/services/mission-presets';
+import { safeStorageRemove } from '@/utils/safe-storage';
 
 /**
  * Dashboard tabs — named, persistent panel workspaces.
@@ -17,6 +18,8 @@ export interface PanelTab {
   panelSettings: Record<string, PanelConfig>;
   panelOrder: string[];
   bottomSet: string[];
+  /** Sabathier desk tab this one was built from (finance variant), kept across renames. */
+  deskKey?: string;
 }
 
 export interface TabsState {
@@ -78,6 +81,11 @@ export function saveTabsState(state: TabsState): TabsPersistReceipt {
     // Storage unavailable (private mode / quota) — tabs still work this session.
     return { persisted: false };
   }
+}
+
+/** Forget the stored tabs (used by "Restore Sabathier desk"; next load rebuilds the first-run tabs). */
+export function clearTabsState(): void {
+  safeStorageRemove(TABS_STORAGE_KEY);
 }
 
 /**

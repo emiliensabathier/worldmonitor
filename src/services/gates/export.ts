@@ -15,6 +15,7 @@
  */
 
 import type { AuthSession } from '../auth-state';
+import { SITE_VARIANT } from '@/config/variant';
 import { getSubscription } from '../billing';
 import { deriveBillingUxState } from '../billing-state';
 import { getEntitlementState } from '../entitlements';
@@ -89,5 +90,7 @@ export function evaluateAvailableExportFormats(authState: AuthSession): DataExpo
  * never asks a caller to remove tabs that already exist (KTD8).
  */
 export function evaluateTabCap(authState: AuthSession, currentTabCount: number): TabCapVerdict {
+  // Self-hosted Sabathier desk: the tab cap belongs to upstream's Pro offer, absent from this fork.
+  if (SITE_VARIANT === 'finance') return { allowed: true, cap: null, pendingActivation: false };
   return resolveTabCap(readExportGateInputs(authState), currentTabCount);
 }

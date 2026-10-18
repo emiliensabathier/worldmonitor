@@ -48,6 +48,10 @@ import { BETA_MODE } from '@/config/beta';
 import { NQ_PULSE_DISCLOSURE } from '@/config/nq-context';
 import { getCurrentLanguage, t } from '@/services/i18n';
 import { mountSiteNav, renderSiteNav } from '@/app/site-nav';
+import { attachLabLinks } from '@/app/lab-links';
+import { buildDeskTabs } from '@/config/sabathier-desk';
+import { SynthesisBar } from '@/components/SynthesisBar';
+import { loadSynthesisData } from '@/components/synthesis-data';
 import { getCurrentTheme } from '@/utils';
 import { trackCriticalBannerAction, trackCheckoutSuccess, trackCheckoutFailed, trackGateHit, trackMapViewChange, trackLayoutCustomized, replayPendingCheckoutSuccess, replayPendingProFunnelEvents, replayPendingConversionEvents, replayPendingMissionReturn } from '@/services/analytics';
 import { ProPreviewSection } from '@/components/ProPreviewSection';
@@ -1354,15 +1358,23 @@ export class PanelLayoutManager implements AppModule {
 
     let state = loadTabsState();
     if (!state) {
-      // First run — wrap the user's current layout in an initial tab so
-      // nothing changes visually until they create a second tab.
-      const initial: PanelTab = {
-        id: generateTabId(),
-        name: t('dashboardTabs.defaultName'),
-        ...this.captureCurrentTabState(),
-      };
-      state = { activeTabId: initial.id, tabs: [initial] };
-      saveTabsState(state);
+      if (SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp) {
+        // Sabathier desk: six predefined tabs instead of a single "Main" tab.
+        const tabs = buildDeskTabs(this.ctx.panelSettings, getCurrentLanguage(), generateTabId);
+        state = { activeTabId: tabs[0]!.id, tabs };
+        saveTabsState(state);
+        this.applyTabPanelState(tabs[0]!.panelSettings, tabs[0]!.panelOrder, tabs[0]!.bottomSet);
+      } else {
+        // First run — wrap the user's current layout in an initial tab so
+        // nothing changes visually until they create a second tab.
+        const initial: PanelTab = {
+          id: generateTabId(),
+          name: t('dashboardTabs.defaultName'),
+          ...this.captureCurrentTabState(),
+        };
+        state = { activeTabId: initial.id, tabs: [initial] };
+        saveTabsState(state);
+      }
     }
     this.tabsState = state;
     // Clamp stored snapshots to the current free-tier cap so a workspace saved
@@ -1380,6 +1392,19 @@ export class PanelLayoutManager implements AppModule {
     });
     mount.appendChild(this.panelTabBar.getElement());
     this.updateTabCapLock();
+
+    if (SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp) {
+      const bar = new SynthesisBar({
+        load: loadSynthesisData,
+        lang: getCurrentLanguage(),
+        onSelectDesk: (desk) => {
+          const tab = this.tabsState?.tabs.find((t) => t.deskKey === desk);
+          if (tab) this.applyWebMcpTabAction({ type: 'select', tabId: tab.id });
+        },
+      });
+      mount.parentNode?.insertBefore(bar.getElement(), mount);
+      bar.start();
+    }
   }
 
   /**
@@ -2646,6 +2671,7 @@ export class PanelLayoutManager implements AppModule {
     const config = this.ctx.panelSettings[key];
     if (config) panel.toggle(config.enabled);
     this.observePanelForHydration(panel);
+    if (SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp) void attachLabLinks(key, panel.getElement(), getCurrentLanguage());
     if (config?.enabled) {
       this.scheduleHydrationForPanelElement(panel.getElement(), 'near');
       // Deferred App-owned panels (Stablecoins, ETF flows, Gulf economies,
