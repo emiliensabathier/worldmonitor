@@ -456,7 +456,7 @@ const TECH_MOBILE_MAP_LAYERS: MapLayers = {
 // ============================================
 // FINANCE VARIANT (Markets/Trading)
 // ============================================
-const FINANCE_PANELS: Record<string, PanelConfig> = {
+export const FINANCE_PANELS: Record<string, PanelConfig> = {
   // Default desk, in reading order: map, prices, labs, AI read, then rates,
   // FX, commodities, macro calendar and stress gauges, then news.
   map: { name: 'Global Markets Map', enabled: true, priority: 1 },
