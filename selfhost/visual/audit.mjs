@@ -49,6 +49,9 @@ for (const theme of ['light', 'dark']) {
       for (const el of document.querySelectorAll('body *')) {
         if (!visible(el) || el.closest('canvas, svg, .maplibregl-canvas-container')) continue;
         const s = getComputedStyle(el);
+        // Exception: colours set inline by panel JS carry data (Fear & Greed gauge, severities), not chrome.
+        const inlineColour = /(^|;)\s*(color|background)/i.test(el.getAttribute('style') ?? '') || [...el.querySelectorAll(':scope > *')].length === 0 && /(^|;)\s*color/i.test(el.parentElement?.getAttribute('style') ?? '');
+        if (inlineColour) continue;
         for (const prop of ['color', 'backgroundColor', 'borderTopColor']) {
           if (prop === 'borderTopColor' && s.borderTopWidth === '0px') continue;
           if (prop === 'color' && !el.childNodes.length) continue;
