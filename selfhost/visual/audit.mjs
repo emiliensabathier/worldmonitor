@@ -63,12 +63,18 @@ for (const theme of ['light', 'dark']) {
         navVisible: !!nav && nav.getBoundingClientRect().height > 0,
         hScroll: document.documentElement.scrollWidth > innerWidth + 1,
         panelTitleFont: getComputedStyle(document.querySelector('.panel-title') ?? document.body).fontFamily,
+        synthesisItems: document.querySelectorAll('.es-syn .es-syn-item').length,
+        deskTabs: document.querySelectorAll('#panelTabsMount .dashboard-tab').length,
+        labLinks: document.querySelectorAll('.es-lab-link a').length,
+        headerVisibleOnMobile: innerWidth <= 768 && !!document.querySelector('.header') && getComputedStyle(document.querySelector('.header')).display !== 'none',
       };
     });
-    const ok = r.greens.length === 0 && r.mono.length === 0 && r.navVisible && !r.hScroll && /Source Serif/.test(r.panelTitleFont);
+    // Each context is fresh (no localStorage): this is a first visit, so the six desk tabs must exist.
+    const ok = r.greens.length === 0 && r.mono.length === 0 && r.navVisible && !r.hScroll && /Source Serif/.test(r.panelTitleFont)
+      && r.synthesisItems >= 5 && r.deskTabs === 6 && r.labLinks >= 1 && !r.headerVisibleOnMobile;
     if (!ok) failed = true;
     report[`${theme}-${size}`] = { ok, ...r };
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${theme}-${size}: greens=${r.greens.length} mono=${r.mono.length} nav=${r.navVisible} hScroll=${r.hScroll}`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${theme}-${size}: greens=${r.greens.length} mono=${r.mono.length} nav=${r.navVisible} hScroll=${r.hScroll} synthesis=${r.synthesisItems} tabs=${r.deskTabs} labLinks=${r.labLinks} mobileHeader=${r.headerVisibleOnMobile}`);
     await ctx.close();
   }
 }
