@@ -104,7 +104,7 @@ const LAZY_HTML_PRELOAD_RE = new RegExp(
 // them; otherwise they would silently fall back into an eager catch-all chunk.
 const PANEL_CLUSTER: Record<string, PanelChunkName> = {
   // Markets / equities / crypto positioning
-  AAIISentiment: 'panels-markets', CotPositioning: 'panels-markets',
+  AAIISentiment: 'panels-markets', Labs: 'panels-markets', CotPositioning: 'panels-markets',
   ETFFlows: 'panels-markets', EarningsCalendar: 'panels-markets', MaterialEvents: 'panels-markets',
   EconomicCalendar: 'panels-markets', FearGreed: 'panels-markets',
   Fx: 'panels-markets',
@@ -235,25 +235,27 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
   return {
     name: 'html-variant',
     transformIndexHtml(html, ctx) {
+      // Self-hosted deploys set SITE_URL so canonical/og URLs point at their own host.
+      const siteUrl = process.env.SITE_URL || activeMeta.url;
       let result = PAGES_WITH_OWN_HEAD_META.has(basename(ctx.filename)) ? html : html
         .replace(/<title>.*?<\/title>/, `<title>${activeMeta.title}</title>`)
         .replace(/<meta name="title" content=".*?" \/>/, `<meta name="title" content="${activeMeta.title}" />`)
         .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${activeMeta.description}" />`)
         .replace(/<meta name="keywords" content=".*?" \/>/, `<meta name="keywords" content="${activeMeta.keywords}" />`)
-        .replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${activeMeta.url}" />`)
+        .replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${siteUrl}" />`)
         .replace(/<meta name="application-name" content=".*?" \/>/, `<meta name="application-name" content="${activeMeta.siteName}" />`)
-        .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${activeMeta.url}" />`)
+        .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${siteUrl}" />`)
         .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${activeMeta.title}" />`)
         .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${activeMeta.description}" />`)
         .replace(/<meta property="og:site_name" content=".*?" \/>/, `<meta property="og:site_name" content="${activeMeta.siteName}" />`)
         .replace(/<meta name="subject" content=".*?" \/>/, `<meta name="subject" content="${activeMeta.subject}" />`)
         .replace(/<meta name="classification" content=".*?" \/>/, `<meta name="classification" content="${activeMeta.classification}" />`)
-        .replace(/<meta name="twitter:url" content=".*?" \/>/, `<meta name="twitter:url" content="${activeMeta.url}" />`)
+        .replace(/<meta name="twitter:url" content=".*?" \/>/, `<meta name="twitter:url" content="${siteUrl}" />`)
         .replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${activeMeta.title}" />`)
         .replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${activeMeta.description}" />`)
         .replace(/"name": "World Monitor"/, `"name": "${activeMeta.siteName}"`)
         .replace(/"alternateName": "WorldMonitor"/, `"alternateName": "${activeMeta.siteName.replace(' ', '')}"`)
-        .replace(/"url": "https:\/\/worldmonitor\.app\/"/, `"url": "${activeMeta.url}"`)
+        .replace(/"url": "https:\/\/worldmonitor\.app\/"/, `"url": "${siteUrl}"`)
         .replace(/"description": "Real-time global intelligence dashboard with live news, markets, military tracking, infrastructure monitoring, and geopolitical data."/, `"description": "${activeMeta.description}"`)
         .replace(/"featureList": \[[\s\S]*?\]/, `"featureList": ${JSON.stringify(activeMeta.features, null, 8).replace(/\n/g, '\n      ')}`);
 

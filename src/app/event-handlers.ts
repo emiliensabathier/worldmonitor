@@ -911,7 +911,10 @@ export class EventHandlerManager implements AppModule {
   private setupMissionPresets(): void {
     this.renderMissionPresetControl();
 
+    // Self-hosted finance desk opens straight on its curated layout; the
+    // Mission button stays available in the header.
     const shouldPrompt =
+      SITE_VARIANT !== 'finance' &&
       !this.ctx.isMobile &&
       !window.location.search &&
       !loadStoredMissionPreset() &&
