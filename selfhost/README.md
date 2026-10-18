@@ -34,3 +34,12 @@ sudo systemctl restart wmllm
 
 `upstream` remote = koala73/worldmonitor. After merging upstream, bump `UPSTREAM_COMMIT`
 in `deploy.sh` so the source offer stays accurate.
+
+## Tests that do not run in selfhost/check.sh
+
+The check image has no git history and no `pro-test/node_modules`. These upstream tests therefore
+fail there and are not regressions: `tests/crawlable-corpus.test.mjs` (shallow boundary commit,
+spawns git), `tests/agent-page.test.mjs` (150-160 character meta, `git ls-files`),
+`tests/csp-inline-sources.test.mjs` (`git ls-files`), `tests/sentry-release-build.test.mts`
+(loads `pro-test/vite.config.ts`). Run them on a machine with a full checkout and `npm ci` in both
+the root and `pro-test/`.

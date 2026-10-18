@@ -9,11 +9,9 @@ dist
 !.github/workflows/*.yaml
 .windsurf
 .agent
-.agents
 .claude
 .factory
 .planning
-e2e
 src-tauri/target
 src-tauri/sidecar/node
 *.log
@@ -24,9 +22,6 @@ src-tauri/sidecar/node
 *.pem
 docker-compose.override.yml
 secrets/
-*.md
-!README.md
-!CHANGELOG.md
 docs/internal
 docs/Docs_To_Review
 **/node_modules
