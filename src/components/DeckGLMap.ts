@@ -275,6 +275,14 @@ const MAP_INTERACTION_MODE: MapInteractionMode =
 const HAPPY_DARK_STYLE = '/map-styles/happy-dark.json';
 const HAPPY_LIGHT_STYLE = '/map-styles/happy-light.json';
 const isHappyVariant = SITE_VARIANT === 'happy';
+// Variants with their own committed basemap styles (happy; finance = Sabathier paper map).
+const SABATHIER_DARK_STYLE = '/map-styles/sabathier-dark.json';
+const SABATHIER_LIGHT_STYLE = '/map-styles/sabathier-light.json';
+const usesVariantBasemap = isHappyVariant || SITE_VARIANT === 'finance';
+function variantBasemapStyle(theme: string): string {
+  if (isHappyVariant) return theme === 'light' ? HAPPY_LIGHT_STYLE : HAPPY_DARK_STYLE;
+  return theme === 'light' ? SABATHIER_LIGHT_STYLE : SABATHIER_DARK_STYLE;
+}
 
 // Zoom thresholds for layer visibility and labels (matches old Map.ts)
 // Zoom-dependent layer visibility and labels
@@ -929,7 +937,7 @@ export class DeckGLMap {
     this.popup = new MapPopup(container);
 
     this.handleThemeChange = () => {
-      if (isHappyVariant) {
+      if (usesVariantBasemap) {
         void this.switchBasemap();
         return;
       }
@@ -1084,7 +1092,7 @@ export class DeckGLMap {
 
     const attribution = document.createElement('div');
     attribution.className = 'map-attribution';
-    setTrustedHtml(attribution, trustedHtml(isHappyVariant
+    setTrustedHtml(attribution, trustedHtml(usesVariantBasemap
       ? '© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
       : '© <a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', "legacy direct innerHTML migration"));
     wrapper.appendChild(attribution);
@@ -1120,7 +1128,7 @@ export class DeckGLMap {
     if (this.destroyed) return;
 
     const preset = VIEW_PRESETS[this.state.view];
-    if (!isHappyVariant && typeof primaryStyle === 'string' && !primaryStyle.includes('pmtiles')) {
+    if (!usesVariantBasemap && typeof primaryStyle === 'string' && !primaryStyle.includes('pmtiles')) {
       this.usedFallbackStyle = true;
       const attr = this.container.querySelector('.map-attribution');
       if (attr) setTrustedHtml(attr, trustedHtml('© <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>', "legacy direct innerHTML migration"));
@@ -1414,11 +1422,11 @@ export class DeckGLMap {
   }
 
   private async resolveInitialBasemapStyle(): Promise<{ mapTheme: string; style: StyleSpecification | string }> {
-    if (isHappyVariant) {
+    if (usesVariantBasemap) {
       const mapTheme = getCurrentTheme();
       return {
         mapTheme,
-        style: mapTheme === 'light' ? HAPPY_LIGHT_STYLE : HAPPY_DARK_STYLE,
+        style: variantBasemapStyle(mapTheme),
       };
     }
 
@@ -8365,8 +8373,8 @@ export class DeckGLMap {
     const seq = ++this.basemapSwitchSeq;
     const provider = getMapProvider();
     const mapTheme = getMapTheme(provider);
-    const style = isHappyVariant
-      ? (getCurrentTheme() === 'light' ? HAPPY_LIGHT_STYLE : HAPPY_DARK_STYLE)
+    const style = usesVariantBasemap
+      ? variantBasemapStyle(getCurrentTheme())
       : (this.usedFallbackStyle && provider === 'auto')
         ? (isLightMapTheme(mapTheme) ? FALLBACK_LIGHT_STYLE : FALLBACK_DARK_STYLE)
         : await getStyleForProvider(provider, mapTheme);
@@ -8382,7 +8390,7 @@ export class DeckGLMap {
       this.updateCountryLayerPaint(paintTheme);
       this.render();
     });
-    if (!isHappyVariant && provider !== 'openfreemap' && !this.usedFallbackStyle) {
+    if (!usesVariantBasemap && provider !== 'openfreemap' && !this.usedFallbackStyle) {
       this.monitorTileLoading(mapTheme);
     }
   }
