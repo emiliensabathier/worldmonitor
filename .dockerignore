@@ -29,3 +29,4 @@ secrets/
 docs/internal
 docs/Docs_To_Review
 tests
+**/node_modules
