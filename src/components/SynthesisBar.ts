@@ -25,7 +25,8 @@ export class SynthesisBar {
     this.lastLoad = Date.now();
     try { data = await this.opts.load(); } catch { return; } // keep what is shown
     const items = buildSynthesisItems(data, this.opts.lang);
-    const brief = data.brief ? firstSentences(data.brief, 2) : '';
+    // The World Brief carries source markers ([1], [12]...) meant for its own panel: drop them here.
+    const brief = data.brief ? firstSentences(data.brief.replace(/\s*\[\d+\]/g, ''), 2) : '';
     const figures = document.createElement('div');
     figures.className = 'es-syn-figures';
     for (const item of items) {

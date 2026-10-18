@@ -187,7 +187,7 @@
 [data-variant="finance"] .es-syn-k { color: var(--muted); }
 [data-variant="finance"] .es-syn-c.up { color: var(--up); }
 [data-variant="finance"] .es-syn-c.down { color: var(--down); }
-[data-variant="finance"] .es-syn-stamp { margin-left: auto; color: var(--muted); }
+[data-variant="finance"] .es-syn-stamp { margin-left: auto; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
 [data-variant="finance"] .es-syn-brief { margin: 4px 0 0; color: var(--ink); max-width: 110ch; }
 @media (max-width: 768px) {
   [data-variant="finance"] .es-syn { padding: 6px 12px; }

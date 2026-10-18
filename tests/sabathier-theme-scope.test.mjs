@@ -110,3 +110,7 @@ test('synthesis figures: compact touch target and visible keyboard focus', () =>
   assert.match(css, /\.es-syn-item\s*\{[^}]*min-height:\s*32px/);
   assert.match(css, /\.es-syn-item:focus-visible\s*\{[^}]*outline/);
 });
+
+test('the synthesis time stamp never wraps (it set the row height on phones)', () => {
+  assert.match(css, /\.es-syn-stamp\s*\{[^}]*white-space:\s*nowrap/);
+});

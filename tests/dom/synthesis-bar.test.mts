@@ -64,3 +64,11 @@ describe('SynthesisBar lifecycle', () => {
     } finally { vi.useRealTimers(); }
   });
 });
+
+describe('SynthesisBar brief cleanup', () => {
+  it('drops the World Brief source markers like [1] or [12]', async () => {
+    const bar = new SynthesisBar({ load: async () => ({ ...data, brief: 'Yields fell [1][2]. Stocks slipped [12]. Third.' }), lang: 'en', onSelectDesk: () => {} });
+    await bar.refresh();
+    expect(bar.getElement().querySelector('.es-syn-brief')!.textContent).toBe('Yields fell. Stocks slipped.');
+  });
+});
