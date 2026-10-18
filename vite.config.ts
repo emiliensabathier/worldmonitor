@@ -10,6 +10,7 @@ import pkg from './package.json';
 import { getSentryBuildMetadata } from './shared/sentry-build-metadata';
 import { appendChunkOwnership, chunkHasFirstPartyModule } from './shared/chunk-ownership';
 import { VARIANT_META, type VariantMeta } from './src/config/variant-meta';
+import { bakeVariantIntoPrepaint } from './shared/variant-prepaint.mjs';
 import {
   WEB_DASHBOARD_VARIANTS,
   renderVariantDashboardHtml,
@@ -269,12 +270,7 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
 
       // Desktop builds: inject build-time variant into the inline script so data-variant is set
       // before CSS loads. Web builds always use 'full' — runtime hostname detection handles variants.
-      if (activeVariant !== 'full') {
-        result = result.replace(
-          /if\(v\)document\.documentElement\.dataset\.variant=v;/,
-          `v='${activeVariant}';document.documentElement.dataset.variant=v;`
-        );
-      }
+      result = bakeVariantIntoPrepaint(result, activeVariant);
 
       // Desktop CSP: inject localhost wildcard for dynamic sidecar port.
       // Web builds intentionally exclude localhost to avoid exposing attack surface.

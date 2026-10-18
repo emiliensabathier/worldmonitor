@@ -22,7 +22,7 @@ function splitList(sel) {
 }
 
 test('every rule is scoped to the finance variant', () => {
-  const selectors = [...css.replace(/@import[^;]+;/g, '').matchAll(/([^{}@]+)\{/g)].map((m) => m[1].trim()).filter(Boolean);
+  const selectors = [...css.replace(/@import[^;]+;/g, '').replace(/@media[^{]+\{/g, '').matchAll(/([^{}@]+)\{/g)].map((m) => m[1].trim()).filter(Boolean);
   assert.ok(selectors.length > 10);
   for (const sel of selectors) {
     for (const part of splitList(sel)) {
@@ -44,4 +44,20 @@ test('severity colours are left alone (only --semantic-positive follows --up, as
 
 test('main.ts loads the theme for the finance variant only', () => {
   assert.match(main, /SITE_VARIANT === 'finance'[\s\S]{0,200}loadVariantThemeStylesheet\('finance', \(\) => import\('\.\/styles\/sabathier-theme\.css'\)\)/);
+});
+
+test('the active-state restyle only targets controls, never overlays or markers that use .active for "shown"', () => {
+  const rule = css.match(/([^{}]*\.mission-preset-button--active[^{}]*)\{/)[1];
+  assert.match(rule, /:is\(button, \[role="tab"\], \[role="option"\], \.layer-toggle, \.mobile-tab\)/);
+  assert.doesNotMatch(css, /\[data-variant="finance"\] :is\(\.active/);
+});
+
+test('the coverage row stays in the accessibility tree (visually hidden, not display:none)', () => {
+  const rule = css.match(/\.digest-coverage-row\s*\{([^}]*)\}/)[1];
+  assert.doesNotMatch(rule, /display:\s*none/);
+  assert.match(rule, /clip:\s*rect\(0 0 0 0\)/);
+});
+
+test('on mobile the footer collapses like upstream (only the status container stays)', () => {
+  assert.match(css, /@media \(max-width: 768px\)\s*\{[^@]*\[data-variant="finance"\] \.site-footer\.es-foot > :not\(\.status-panel-container\)\s*\{\s*display:\s*none;/);
 });

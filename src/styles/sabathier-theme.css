@@ -96,7 +96,8 @@
   letter-spacing: normal;
   border-radius: var(--radius);
 }
-[data-variant="finance"] :is(.active, [aria-pressed="true"], [aria-selected="true"], .mission-preset-button--active):not(.es-nav *) {
+/* Controls only: elsewhere upstream uses .active for "shown" (modals, overlays, markers). */
+[data-variant="finance"] :is(button, [role="tab"], [role="option"], .layer-toggle, .mobile-tab):is(.active, [aria-pressed="true"], [aria-selected="true"], .mission-preset-button--active):not(.es-nav *) {
   color: var(--pen);
   border-color: var(--pen);
   background-color: var(--pen-wash);
@@ -105,4 +106,24 @@
 
 /* Footer: the site's footer; the technical coverage line is hidden. */
 [data-variant="finance"] .site-footer.es-foot { display: block; background: var(--paper); }
-[data-variant="finance"] .site-footer .digest-coverage-row { display: none; }
+/* Visually hidden, but kept in the accessibility tree as upstream intends (#7267). */
+[data-variant="finance"] .site-footer .digest-coverage-row {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Mobile: collapse the footer like upstream does (the shared .es-foot rules are unlayered and
+   would otherwise bring it back under the fixed mobile tab bar). */
+@media (max-width: 768px) {
+  [data-variant="finance"] .site-footer.es-foot {
+    padding: 0;
+    border-top: none;
+  }
+  [data-variant="finance"] .site-footer.es-foot > :not(.status-panel-container) {
+    display: none;
+  }
+}
