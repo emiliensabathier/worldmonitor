@@ -61,3 +61,24 @@ test('the coverage row stays in the accessibility tree (visually hidden, not dis
 test('on mobile the footer collapses like upstream (only the status container stays)', () => {
   assert.match(css, /@media \(max-width: 768px\)\s*\{[^@]*\[data-variant="finance"\] \.site-footer\.es-foot > :not\(\.status-panel-container\)\s*\{\s*display:\s*none;/);
 });
+
+test('the 2D map (drawn from --map-* variables) gets the paper palette, grid hidden in the water colour', () => {
+  const light = css.match(/:root\[data-variant="finance"\]\s*\{([^}]*)\}/)[1];
+  const dark = css.match(/:root\[data-variant="finance"\]\[data-theme="dark"\]\s*\{([^}]*)\}/)[1];
+  for (const [block, bg, land] of [[light, '#e3e9f3', '#fbfaf6'], [dark, '#0f1420', '#1a1c21']]) {
+    assert.match(block, new RegExp(`--map-bg:\\s*${bg};`));
+    assert.match(block, new RegExp(`--map-grid:\\s*${bg};`));
+    assert.match(block, new RegExp(`--map-country:\\s*${land};`));
+    assert.match(block, /--map-stroke:\s*#[0-9a-f]{6};/);
+  }
+});
+
+test('no space is reserved for the upstream Pro banner (the fork never shows it)', () => {
+  assert.match(css, /:root\[data-variant="finance"\]\.wm-pro-banner-reserved \.pro-banner-slot\s*\{\s*min-height:\s*0;/);
+  assert.match(css, /:root\[data-variant="finance"\]\.wm-pro-banner-reserved #app::before\s*\{\s*content:\s*none;\s*display:\s*none;/);
+});
+
+test('suggested Mission button and live data badge drop their hard-coded greens', () => {
+  assert.match(css, /\[data-variant="finance"\] \.mission-preset-button--suggested\s*\{\s*border-color:\s*var\(--pen\);/);
+  assert.match(css, /\[data-variant="finance"\] \.panel-data-badge\.live\s*\{[^}]*border-color:\s*var\(--rule\);[^}]*background:\s*transparent;/);
+});

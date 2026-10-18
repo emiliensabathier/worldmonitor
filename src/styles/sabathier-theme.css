@@ -32,6 +32,11 @@
   --font-body-base: var(--sans);
   --font-body: var(--sans);
   --font-mono: var(--sans);
+  /* 2D map, drawn from these variables: wash water, paper land, hairline borders, grid hidden. */
+  --map-bg: #e3e9f3;
+  --map-grid: #e3e9f3;
+  --map-country: #fbfaf6;
+  --map-stroke: #c9cdd3;
 }
 
 :root[data-variant="finance"][data-theme="dark"] {
@@ -45,6 +50,19 @@
   --input-bg: #17191d;
   --scrollbar-thumb: #41454d;
   --scrollbar-thumb-hover: #6c727b;
+  --map-bg: #0f1420;
+  --map-grid: #0f1420;
+  --map-country: #1a1c21;
+  --map-stroke: #3a3e46;
+}
+
+/* The fork never shows the upstream Pro banner: reserve no room for it. */
+:root[data-variant="finance"].wm-pro-banner-reserved .pro-banner-slot {
+  min-height: 0;
+}
+:root[data-variant="finance"].wm-pro-banner-reserved #app::before {
+  content: none;
+  display: none;
 }
 
 /* Base type: one sans family, tabular figures everywhere. */
@@ -102,6 +120,15 @@
   border-color: var(--pen);
   background-color: var(--pen-wash);
   box-shadow: none;
+}
+
+[data-variant="finance"] .mission-preset-button--suggested {
+  border-color: var(--pen);
+}
+[data-variant="finance"] .panel-data-badge.live {
+  color: var(--up);
+  border-color: var(--rule);
+  background: transparent;
 }
 
 /* Footer: the site's footer; the technical coverage line is hidden. */
