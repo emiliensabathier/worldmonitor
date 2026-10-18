@@ -3,7 +3,7 @@ import { fetchCommodityQuotes, fetchMultipleStocks } from '@/services/market';
 import { getEcbFxRatesData } from '@/services/economic';
 import { fetchServerInsights } from '@/services/insights-loader';
 import type { EconomicServiceClient } from '@/generated/client/worldmonitor/economic/v1/service_client';
-import type { SynthesisData } from '@/components/synthesis-format';
+import { memoize, type SynthesisData } from '@/components/synthesis-format';
 
 const STOCKS = [
   { symbol: '^TNX', name: 'US 10-Year Yield', display: 'US 10Y' },
@@ -26,16 +26,19 @@ async function economic(): Promise<EconomicServiceClient> {
   return client;
 }
 
+// Yield curves change once a day: cache them 30 min instead of asking on every 5-min refresh.
+const euCurve = memoize(async () => (await economic()).getEuYieldCurve({}), 30 * 60_000);
+const usCurve = memoize(async () => (await economic()).getUsTreasuryParYieldCurve({ history: false }), 30 * 60_000);
+
 const settled = <T,>(r: PromiseSettledResult<T>): T | null => (r.status === 'fulfilled' ? r.value : null);
 
 export async function loadSynthesisData(): Promise<SynthesisData> {
-  const eco = await economic();
   const [stocks, commodities, fx, eu, us, insights] = await Promise.allSettled([
     fetchMultipleStocks(STOCKS),
     fetchCommodityQuotes(COMMODITIES),
     getEcbFxRatesData(),
-    eco.getEuYieldCurve({}),
-    eco.getUsTreasuryParYieldCurve({ history: false }),
+    euCurve(),
+    usCurve(),
     fetchServerInsights(),
   ]);
   const quotes: SynthesisData['quotes'] = {};

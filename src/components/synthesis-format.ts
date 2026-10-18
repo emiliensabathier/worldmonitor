@@ -72,3 +72,15 @@ export function firstSentences(text: string, n: number): string {
 export function formatSynthesisStamp(ms: number, lang: string): string {
   return new Intl.DateTimeFormat(LOCALE(lang), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }).format(new Date(ms));
 }
+
+/** Cache an async result for `ttlMs` (failures are not cached). */
+export function memoize<T>(fn: () => Promise<T>, ttlMs: number, now: () => number = Date.now): () => Promise<T> {
+  let value: { at: number; result: Promise<T> } | null = null;
+  return () => {
+    if (value && now() - value.at < ttlMs) return value.result;
+    const result = fn();
+    value = { at: now(), result };
+    result.catch(() => { if (value?.result === result) value = null; });
+    return result;
+  };
+}

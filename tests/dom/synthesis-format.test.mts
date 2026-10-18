@@ -65,3 +65,17 @@ describe('firstSentences length cap', () => {
     expect(out.endsWith('…')).toBe(true);
   });
 });
+
+describe('memoize', () => {
+  it('reuses a result for its time-to-live, then refetches; a failure is not cached', async () => {
+    const { memoize } = await import('@/components/synthesis-format');
+    let now = 0;
+    let calls = 0;
+    const fn = memoize(async () => { calls++; if (calls === 2) throw new Error('x'); return calls; }, 1000, () => now);
+    expect(await fn()).toBe(1);
+    now = 999; expect(await fn()).toBe(1);
+    now = 1001; await expect(fn()).rejects.toThrow('x');
+    expect(await fn()).toBe(3);
+    expect(calls).toBe(3);
+  });
+});
