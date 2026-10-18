@@ -27,11 +27,11 @@ fi
 HEAD_COMMIT=$(git rev-parse HEAD)
 
 echo "== build $HEAD_COMMIT"
-docker buildx build -f selfhost/Dockerfile.cross --build-arg SITE_URL="$SITE_URL" \
+sudo docker buildx build -f selfhost/Dockerfile.cross --build-arg SITE_URL="$SITE_URL" \
   -t worldmonitor:latest --load .
 
 echo "== restart"
-(cd "$DEPLOY_DIR" && docker compose up -d --no-build worldmonitor)
+(cd "$DEPLOY_DIR" && sudo docker compose up -d --no-build worldmonitor)
 for _ in $(seq "$HEALTH_TRIES"); do
   if curl -fsS -o /dev/null "$HEALTH_URL"; then break; fi
   sleep 2
@@ -60,5 +60,5 @@ sudo install -m 644 "$offer" "$SOURCE_OFFER"
 rm -f "$offer"
 
 echo "== cleanup"
-docker image prune -f >/dev/null
+sudo docker image prune -f >/dev/null
 echo "Deployed $HEAD_COMMIT"
