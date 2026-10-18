@@ -1,7 +1,7 @@
 // Sabathier desk (finance variant on emiliensabathier.fr): six predefined dashboard tabs built on a
 // visitor's first run instead of the single upstream "Main" tab. Panels may appear in several tabs.
 import type { PanelConfig } from '@/types';
-import type { PanelTab } from '@/services/tab-store';
+import type { PanelTab, TabsState } from '@/services/tab-store';
 
 export type DeskKey = 'overview' | 'rates-fx' | 'equities' | 'commodities' | 'macro' | 'news';
 
@@ -23,4 +23,16 @@ export function buildDeskTabs(base: Record<string, PanelConfig>, lang: string, n
     for (const [key, config] of Object.entries(base)) panelSettings[key] = { ...config, enabled: visible.has(key) };
     return { id: newId(), name: fr ? tab.name.fr : tab.name.en, deskKey: tab.key, panelSettings, panelOrder, bottomSet: [] };
   });
+}
+
+/** First visit only (no stored tabs): the six-tab state, first tab active. Otherwise null. */
+export function prepareFirstRunDesk(
+  stored: TabsState | null,
+  base: Record<string, PanelConfig>,
+  lang: string,
+  newId: () => string,
+): TabsState | null {
+  if (stored) return null;
+  const tabs = buildDeskTabs(base, lang, newId);
+  return { activeTabId: tabs[0]!.id, tabs };
 }

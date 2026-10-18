@@ -53,3 +53,18 @@ describe('buildDeskTabs', () => {
     for (const tab of SABATHIER_DESK) for (const key of tab.panels) expect(FINANCE_PANELS).toHaveProperty(key);
   });
 });
+
+describe('prepareFirstRunDesk', () => {
+  it('returns nothing when the visitor already has stored tabs (their layout is left alone)', async () => {
+    const { prepareFirstRunDesk } = await import('@/config/sabathier-desk');
+    const stored = { activeTabId: 'tab-a-b', tabs: [{ id: 'tab-a-b', name: 'Main', panelSettings: {}, panelOrder: [], bottomSet: [] }] };
+    expect(prepareFirstRunDesk(stored, base, 'en', ids)).toBeNull();
+  });
+
+  it('on a first visit, returns the six-tab state with the first tab active', async () => {
+    const { prepareFirstRunDesk } = await import('@/config/sabathier-desk');
+    const desk = prepareFirstRunDesk(null, base, 'en', ids)!;
+    expect(desk.tabs.map((t) => t.deskKey)).toEqual(['overview', 'rates-fx', 'equities', 'commodities', 'macro', 'news']);
+    expect(desk.activeTabId).toBe(desk.tabs[0]!.id);
+  });
+});
