@@ -131,3 +131,13 @@ test('function shell: grid on main, contents grid, hidden tabs and toolbar, tick
 test('function shell: a map height saved by the upstream splitter never overrides the grid cell', () => {
   assert.match(css, /\.bb-shell #mapContainer\s*\{[^}]*flex:\s*1 1 auto !important;[^}]*height:\s*auto !important/);
 });
+
+test('mobile shell: no upstream tab bar, stacked flex column, capped panel heights, 11px floor, 40px keys', () => {
+  const mobile = css.match(/@media \(max-width: 768px\)\s*\{([\s\S]*?)\n\}/g).join('\n');
+  assert.match(mobile, /\.bb-shell :is\(#mobileTabBar, \.mobile-panel-nav, \.map-collapse-btn\)\s*\{[^}]*display:\s*none/);
+  assert.match(mobile, /\.bb-shell #main\.main-content\[data-fn\]\s*\{[^}]*flex-direction:\s*column/);
+  assert.match(mobile, /\.bb-shell \.main-content\[data-fn\] \.panel:not\(\.hidden\)\s*\{[^}]*max-height:\s*60vh/);
+  assert.match(mobile, /\.bb-shell #mapSection:not\(\.hidden\)\s*\{[^}]*height:\s*40vh/);
+  assert.match(mobile, /\.bb-shell \.bb-key\s*\{[^}]*min-height:\s*40px/);
+  assert.match(mobile, /\[data-variant="finance"\] body\s*\{[^}]*font-size:\s*11px/);
+});

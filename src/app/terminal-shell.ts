@@ -34,6 +34,8 @@ export class TerminalShell {
   private readonly help: HTMLElement;
   private readonly helpMsg: HTMLElement;
   private readonly clock: HTMLElement;
+  private readonly clockPar: HTMLElement;
+  private readonly clockNy: HTMLElement;
   private readonly keys = new Map<FunctionCode, HTMLButtonElement>();
   private readonly text: typeof TEXT.en;
   private readonly now: () => Date;
@@ -75,6 +77,11 @@ export class TerminalShell {
     this.clock = document.createElement('span');
     this.clock.className = 'bb-clock';
     this.clock.setAttribute('translate', 'no');
+    this.clockPar = document.createElement('span');
+    this.clockPar.className = 'bb-clock-par';
+    this.clockNy = document.createElement('span');
+    this.clockNy.className = 'bb-clock-ny';
+    this.clock.append(this.clockPar, this.clockNy);
     form.append(prompt, this.input, this.clock);
     form.addEventListener('submit', (e) => { e.preventDefault(); this.run(this.input.value); });
 
@@ -167,6 +174,7 @@ export class TerminalShell {
 
   private tick(): void {
     const d = this.now();
-    this.clock.textContent = `PAR ${clockPart(d, 'Europe/Paris')} · NY ${clockPart(d, 'America/New_York')}`;
+    this.clockPar.textContent = `PAR ${clockPart(d, 'Europe/Paris')}`;
+    this.clockNy.textContent = ` · NY ${clockPart(d, 'America/New_York')}`;
   }
 }

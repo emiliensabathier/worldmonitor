@@ -1353,9 +1353,15 @@ export class PanelLayoutManager implements AppModule {
     this.initPanelTabs();
     if (import.meta.env.DEV && bootShellFootprint) warnOnBootShellFootprintDrift(bootShellFootprint);
 
-    if (this.ctx.isMobile) {
+    // The Terminal shell stacks each function's panels itself: no collapsible map, no category chips.
+    const bbShell = document.documentElement.classList.contains('bb-shell');
+    if (this.ctx.isMobile && !bbShell) {
       this.setupMobileMapToggle();
       this.setupMobilePanelNav();
+    }
+    if (bbShell) {
+      document.documentElement.classList.remove('wm-map-collapsed');
+      document.getElementById('mapSection')?.classList.remove('collapsed');
     }
   }
 

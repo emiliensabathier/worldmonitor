@@ -483,3 +483,64 @@
   }
   :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel-content { flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; }
 }
+
+/* Phones: one stacked column in the function's mobile order (TerminalGrid sets CSS order), compact nav,
+   command line and keys; the upstream tab bar, category chips and collapsible map are gone. */
+@media (max-width: 768px) {
+  [data-variant="finance"] body { font-size: 11px; }
+  :root[data-variant="finance"].bb-shell .es-nav .es-nav-inner {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    white-space: nowrap;
+    padding-block: 6px;
+    padding-inline: 10px;
+    gap: 14px;
+    align-items: center;
+  }
+  :root[data-variant="finance"].bb-shell .es-nav .es-nav-mark { font-size: 14px; flex: none; }
+  :root[data-variant="finance"].bb-shell .es-nav .es-nav-links { flex-wrap: nowrap; gap: 14px; font-size: 12px; }
+  :root[data-variant="finance"].bb-shell :is(#mobileTabBar, .mobile-panel-nav, .map-collapse-btn) { display: none; }
+  :root[data-variant="finance"].bb-shell .bb-cmd { padding: 4px 10px; }
+  :root[data-variant="finance"].bb-shell .bb-clock-ny { display: none; }
+  :root[data-variant="finance"].bb-shell .bb-help-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  :root[data-variant="finance"].bb-shell .bb-keys { padding: 4px 10px; }
+  :root[data-variant="finance"].bb-shell .bb-key {
+    min-height: 40px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+  }
+  :root[data-variant="finance"].bb-shell .bb-key small { display: none; }
+  :root[data-variant="finance"].bb-shell #app { display: block; height: auto; overflow: visible; }
+  :root[data-variant="finance"].bb-shell #main.main-content[data-fn] {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px;
+    height: auto;
+    overflow: visible;
+  }
+  /* !important: upstream turns .panels-grid into a padded flex column on phones with !important. */
+  :root[data-variant="finance"].bb-shell #panelsGrid { display: contents !important; }
+  :root[data-variant="finance"].bb-shell #main[data-fn] #panelsGrid > :not(.bb-placed) { display: none; }
+  :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel:not(.hidden) {
+    max-height: 60vh;
+    min-height: 0 !important;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel-content { flex: 1 1 auto; min-height: 0; overflow: auto; }
+  :root[data-variant="finance"].bb-shell #mapSection:not(.hidden) {
+    height: 40vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--bb-rule);
+  }
+  :root[data-variant="finance"].bb-shell #mapContainer { flex: 1 1 auto !important; min-height: 0; height: auto !important; }
+  :root[data-variant="finance"].bb-shell .site-footer.es-foot { display: block; padding: 0 0 env(safe-area-inset-bottom, 0px); }
+  :root[data-variant="finance"].bb-shell .site-footer.es-foot > * { display: revert; }
+  :root[data-variant="finance"].bb-shell .site-footer.es-foot .es-foot-inner { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+}
