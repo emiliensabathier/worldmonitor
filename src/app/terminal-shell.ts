@@ -33,6 +33,7 @@ export class TerminalShell {
   private readonly input: HTMLInputElement;
   private readonly help: HTMLElement;
   private readonly helpMsg: HTMLElement;
+  private readonly live: HTMLElement;
   private readonly clock: HTMLElement;
   private readonly clockPar: HTMLElement;
   private readonly clockNy: HTMLElement;
@@ -51,6 +52,9 @@ export class TerminalShell {
   };
   // Back/forward fire popstate and hashchange together: act once, and keep the address canonical (#GOVT).
   private readonly onLocation = () => {
+    // In-page anchors (the skip link's #main…) are not function addresses: leave them alone.
+    const raw = location.hash.replace(/^#/, '').trim().toUpperCase();
+    if (raw && !isFunctionCode(raw)) return;
     const code = functionFromHash(location.hash);
     if (location.hash !== `#${code}`) history.replaceState(history.state, '', `#${code}`);
     if (code !== this.active) this.open(code, false);
@@ -99,7 +103,10 @@ export class TerminalShell {
     this.help.hidden = true;
     this.helpMsg = document.createElement('p');
     this.helpMsg.className = 'bb-help-msg';
-    this.helpMsg.setAttribute('role', 'status');
+    // Announced through a live region that is always rendered (a region revealed already filled is not read).
+    this.live = document.createElement('span');
+    this.live.className = 'bb-sr-status';
+    this.live.setAttribute('role', 'status');
     const list = document.createElement('div');
     list.className = 'bb-help-list';
     for (const fn of TERMINAL_FUNCTIONS) {
@@ -133,7 +140,7 @@ export class TerminalShell {
       nav.append(b);
     }
 
-    this.el.append(form, this.help, nav);
+    this.el.append(form, this.help, nav, this.live);
     this.tick();
   }
 
@@ -177,6 +184,10 @@ export class TerminalShell {
       return;
     }
     this.helpMsg.textContent = cmd.kind === 'unknown' ? this.text.unknown + cmd.input : '';
+    // Clear, then write on the next tick, so a repeated identical message is announced again.
+    const message = this.helpMsg.textContent;
+    this.live.textContent = '';
+    if (message) setTimeout(() => { this.live.textContent = message; }, 0);
     this.helpMsg.hidden = cmd.kind !== 'unknown';
     this.help.hidden = false;
     this.input.setAttribute('aria-expanded', 'true');

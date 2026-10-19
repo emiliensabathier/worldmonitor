@@ -96,10 +96,13 @@ describe('TerminalShell', () => {
     shell.setActive('LABS');
     expect(spy).toHaveBeenCalledWith({ inline: 'nearest', block: 'nearest' });
   });
-  it('announces unknown codes and ties the help list to the command line', () => {
+  it('announces unknown codes through an always-rendered live region, and ties the help list to the command line', async () => {
     submit('xyz');
-    const msg = shell.getElement().querySelector('.bb-help-msg')!;
-    expect(msg.getAttribute('role')).toBe('status');
+    const live = shell.getElement().querySelector('.bb-sr-status')!;
+    expect(live.getAttribute('role')).toBe('status');
+    expect(live.closest('.bb-help')).toBeNull();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(live.textContent).toBe('Code inconnu : XYZ');
     expect(input().getAttribute('aria-expanded')).toBe('true');
     expect(input().getAttribute('aria-controls')).toBe(shell.getElement().querySelector('.bb-help')!.id);
     input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
@@ -112,6 +115,15 @@ describe('TerminalShell', () => {
     expect(location.hash).toBe('#GOVT');
     expect(push).not.toHaveBeenCalled();
   });
+  it('ignores in-page anchors such as the skip link (#main)', () => {
+    shell.open('GOVT');
+    const before = opened.length;
+    history.replaceState(null, '', '/terminal/#main');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    expect(opened).toHaveLength(before);
+    expect(location.hash).toBe('#main');
+  });
+
   it('popstate and hashchange for the same navigation open the function once', () => {
     history.replaceState(null, '', '/terminal/#FX');
     window.dispatchEvent(new PopStateEvent('popstate'));
