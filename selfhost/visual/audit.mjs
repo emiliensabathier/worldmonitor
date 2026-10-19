@@ -68,19 +68,57 @@ for (const theme of ['light', 'dark']) {
         hScroll: document.documentElement.scrollWidth > innerWidth + 1,
         panelTitleFont: getComputedStyle(document.querySelector('.panel-title') ?? document.body).fontFamily,
         synthesisItems: document.querySelectorAll('.es-syn .es-syn-item').length,
-        deskTabs: document.querySelectorAll('#panelTabsMount .dashboard-tab').length,
+        keys: document.querySelectorAll('.bb-key').length,
         labLinks: document.querySelectorAll('.es-lab-link a').length,
         headerVisibleOnMobile: innerWidth <= 768 && !!document.querySelector('.header') && getComputedStyle(document.querySelector('.header')).display !== 'none',
       };
     });
-    // Each context is fresh (no localStorage): this is a first visit, so the six desk tabs must exist.
     const ok = r.greens.length === 0 && r.bodyBg === 'rgb(0, 0, 0)' && r.agpl && r.navVisible && !r.hScroll && /IBM Plex Mono/.test(r.panelTitleFont)
-      && r.synthesisItems >= 5 && r.deskTabs === 6 && r.labLinks >= 1 && !r.headerVisibleOnMobile;
+      && r.synthesisItems >= 5 && r.keys === 8 && r.labLinks >= 1 && !r.headerVisibleOnMobile;
     if (!ok) failed = true;
     report[`${theme}-${size}`] = { ok, ...r };
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${theme}-${size}: greens=${r.greens.length} bodyBg=${r.bodyBg} agpl=${r.agpl} nav=${r.navVisible} hScroll=${r.hScroll} synthesis=${r.synthesisItems} tabs=${r.deskTabs} labLinks=${r.labLinks} mobileHeader=${r.headerVisibleOnMobile}`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${theme}-${size}: greens=${r.greens.length} bodyBg=${r.bodyBg} agpl=${r.agpl} nav=${r.navVisible} hScroll=${r.hScroll} synthesis=${r.synthesisItems} keys=${r.keys} labLinks=${r.labLinks} mobileHeader=${r.headerVisibleOnMobile}`);
     await ctx.close();
   }
+}
+// Every function screen on desktop: no page scroll, every grid area holds a visible panel; then the
+// command line (GOVT + Enter) switches screen and address.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  for (const code of ['TOP', 'WEI', 'GOVT', 'FX', 'CMDTY', 'ECO', 'N', 'LABS']) {
+    await page.goto(`${url}#${code}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(code === 'TOP' ? 15000 : 8000);
+    await page.screenshot({ path: join(outdir, `fn-${code}.png`) });
+    const r = await page.evaluate(() => {
+      const main = document.getElementById('main');
+      const names = [...new Set((main?.style.gridTemplateAreas ?? '').replace(/"/g, ' ').split(/\s+/).filter((n) => n && n !== '.'))];
+      const empty = names.filter((n) => {
+        const el = n === 'map' ? document.getElementById('mapSection') : document.querySelector(`#panelsGrid > [data-panel="${n}"]`);
+        return !el || el.classList.contains('hidden') || el.getBoundingClientRect().height < 40;
+      });
+      const shown = [...document.querySelectorAll('#panelsGrid > [data-panel]')].filter((el) => getComputedStyle(el).display !== 'none').map((el) => el.dataset.panel);
+      const map = document.getElementById('mapSection');
+      if (map && getComputedStyle(map).display !== 'none') shown.push('map');
+      const extra = shown.filter((k) => !names.includes(k));
+      return { fn: main?.dataset.fn, names, empty, extra, pageScroll: document.documentElement.scrollHeight > innerHeight + 1 };
+    });
+    const ok = r.fn === code && r.names.length > 0 && r.empty.length === 0 && r.extra.length === 0 && !r.pageScroll;
+    if (!ok) failed = true;
+    report[`fn-${code}`] = { ok, ...r };
+    console.log(`${ok ? 'ok  ' : 'FAIL'} fn-${code}: fn=${r.fn} areas=${r.names.join(',')} empty=${r.empty.join(',')} extra=${r.extra.join(',')} pageScroll=${r.pageScroll}`);
+  }
+  await page.goto(`${url}#TOP`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(8000);
+  await page.fill('.bb-cmd input', 'GOVT');
+  await page.press('.bb-cmd input', 'Enter');
+  await page.waitForTimeout(1500);
+  const cmd = await page.evaluate(() => ({ hash: location.hash, fn: document.getElementById('main')?.dataset.fn }));
+  const cmdOk = cmd.hash === '#GOVT' && cmd.fn === 'GOVT';
+  if (!cmdOk) failed = true;
+  report.command = { ok: cmdOk, ...cmd };
+  console.log(`${cmdOk ? 'ok  ' : 'FAIL'} command GOVT: hash=${cmd.hash} fn=${cmd.fn}`);
+  await ctx.close();
 }
 await browser.close();
 writeFileSync(join(outdir, 'report.json'), JSON.stringify(report, null, 2));
