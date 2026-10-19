@@ -124,6 +124,26 @@ export function isRectangular(areas: readonly string[]): boolean {
 export function collapseAreas(areas: readonly string[], present: ReadonlySet<string>): string[] {
   const cells = cellsOf(areas);
   const out = () => cells.map((r) => r.join(' '));
+  // First, whole areas: an absent panel's box goes to a present neighbour sharing its full edge.
+  for (const name of new Set(cells.flat())) {
+    if (name === '.' || present.has(name)) continue;
+    const at = cells.flatMap((row, r) => row.map((n, c) => (n === name ? [r, c] as const : null))).filter((p) => p !== null);
+    const r0 = Math.min(...at.map(([r]) => r)), r1 = Math.max(...at.map(([r]) => r));
+    const c0 = Math.min(...at.map(([, c]) => c)), c1 = Math.max(...at.map(([, c]) => c));
+    const rows = Array.from({ length: r1 - r0 + 1 }, (_, i) => r0 + i);
+    const cols = Array.from({ length: c1 - c0 + 1 }, (_, i) => c0 + i);
+    const edges = [
+      rows.map((r) => cells[r]![c0 - 1]), rows.map((r) => cells[r]![c1 + 1]),
+      cols.map((c) => cells[r0 - 1]?.[c]), cols.map((c) => cells[r1 + 1]?.[c]),
+    ];
+    for (const edge of edges) {
+      const p = edge[0];
+      if (!p || p === '.' || !present.has(p) || edge.some((n) => n !== p)) continue;
+      for (const [r, c] of at) cells[r]![c] = p;
+      if (isRectangular(out())) break;
+      for (const [r, c] of at) cells[r]![c] = name;
+    }
+  }
   let changed = true;
   while (changed) {
     changed = false;

@@ -84,4 +84,8 @@ describe('collapseAreas', () => {
     expect(isRectangular(collapseAreas(['a x', 'a y'], new Set(['a', 'y'])))).toBe(true);
     expect(isRectangular(['a b', 'b a'])).toBe(false);
   });
+  it('hands a whole missing area to a neighbour sharing its full edge before going cell by cell', () => {
+    expect(collapseAreas(['y y c', 'b b c'], new Set(['b', 'c']))).toEqual(['b b c', 'b b c']);
+    expect(collapseAreas(['a x', 'a x'], new Set(['a']))).toEqual(['a a', 'a a']);
+  });
 });
