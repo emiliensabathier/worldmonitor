@@ -574,3 +574,5 @@
 [data-variant="finance"] .panel-error-radar { display: none; }
 [data-variant="finance"] .panel-error-msg { color: var(--bb-dim); font-size: 11px; }
 [data-variant="finance"] .panel-error-msg::before { content: "N/A — "; color: var(--bb-dim); }
+/* The command line already shows the time: drop the map header clock (it overlapped 2D/3D). */
+:root[data-variant="finance"].bb-shell #mapSection .header-clock { display: none; }
