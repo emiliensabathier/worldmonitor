@@ -120,6 +120,39 @@ for (const theme of ['light', 'dark']) {
   console.log(`${cmdOk ? 'ok  ' : 'FAIL'} command GOVT: hash=${cmd.hash} fn=${cmd.fn}`);
   await ctx.close();
 }
+// Phones: stacked function screens, no upstream tab bar, 40px keys, 11px floor, status bar with the licence.
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  for (const code of ['TOP', 'GOVT', 'ECO']) {
+    await page.goto(`${url}#${code}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(code === 'TOP' ? 15000 : 8000);
+    await page.screenshot({ path: join(outdir, `m-${code}.png`) });
+    const r = await page.evaluate(() => {
+      const main = document.getElementById('main');
+      const names = [...new Set((main?.style.gridTemplateAreas ?? '').replace(/"/g, ' ').split(/\s+/).filter((n) => n && n !== '.'))];
+      const missing = names.filter((n) => {
+        const el = n === 'map' ? document.getElementById('mapSection') : document.querySelector(`#panelsGrid > [data-panel="${n}"]`);
+        return !el || getComputedStyle(el).display === 'none' || el.getBoundingClientRect().height < 40;
+      });
+      const bar = document.getElementById('mobileTabBar');
+      const keyHeights = [...document.querySelectorAll('.bb-key')].map((k) => k.getBoundingClientRect().height);
+      const content = document.querySelector('#panelsGrid > .bb-placed .panel-content');
+      const agpl = document.querySelector('.site-footer a[href$="/labs/source.txt"]');
+      return {
+        fn: main?.dataset.fn, missing, hScroll: document.documentElement.scrollWidth > innerWidth + 1,
+        tabBar: !!bar && getComputedStyle(bar).display !== 'none',
+        minKey: Math.min(...keyHeights), font: content ? parseFloat(getComputedStyle(content).fontSize) : 0,
+        agpl: !!agpl && agpl.getBoundingClientRect().height > 0,
+      };
+    });
+    const ok = r.fn === code && r.missing.length === 0 && !r.hScroll && !r.tabBar && r.minKey >= 40 && r.font >= 11 && r.agpl;
+    if (!ok) failed = true;
+    report[`m-${code}`] = { ok, ...r };
+    console.log(`${ok ? 'ok  ' : 'FAIL'} m-${code}: fn=${r.fn} missing=${r.missing.join(',')} hScroll=${r.hScroll} tabBar=${r.tabBar} minKey=${r.minKey} font=${r.font} agpl=${r.agpl}`);
+  }
+  await ctx.close();
+}
 await browser.close();
 writeFileSync(join(outdir, 'report.json'), JSON.stringify(report, null, 2));
 process.exit(failed ? 1 : 0);
