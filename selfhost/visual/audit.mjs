@@ -1,4 +1,4 @@
-// Visual audit of the Sabathier theme: screenshots in light/dark at desktop and phone sizes, plus
+// Visual audit of the Bloomberg-style Sabathier Terminal (always black, whatever the colour scheme): screenshots in light/dark at desktop and phone sizes, plus
 // automatic checks. Usage: node selfhost/visual/audit.mjs <url> <outdir>  (exit 1 on any failure)
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -37,7 +37,8 @@ for (const theme of ['light', 'dark']) {
       };
       // The theme's own "up" colour (gains) is allowed: resolve it once to its rgb() form.
       const probe = document.createElement('i');
-      probe.style.color = getComputedStyle(document.documentElement).getPropertyValue('--up').trim();
+      const rootStyle = getComputedStyle(document.documentElement);
+      probe.style.color = (rootStyle.getPropertyValue('--bb-up') || rootStyle.getPropertyValue('--up')).trim();
       document.body.append(probe);
       const upColor = getComputedStyle(probe).color;
       probe.remove();
@@ -45,7 +46,7 @@ for (const theme of ['light', 'dark']) {
       const bright = (c) => { const v = hsl(c); return v && v.h >= 80 && v.h <= 170 && v.s >= 0.5 && v.l >= 0.35 && v.l <= 0.8 && !isUp(c); };
       const path = (el) => { const parts = []; for (let e = el; e && e !== document.body && parts.length < 4; e = e.parentElement) parts.unshift(e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') + [...e.classList].slice(0, 2).map((c) => '.' + c).join('')); return parts.join(' > '); };
       const visible = (el) => { const b = el.getBoundingClientRect(); const s = getComputedStyle(el); return b.width > 0 && b.height > 0 && s.visibility !== 'hidden' && s.display !== 'none' && b.bottom > 0 && b.top < innerHeight; };
-      const greens = [], mono = [];
+      const greens = [];
       for (const el of document.querySelectorAll('body *')) {
         if (!visible(el) || el.closest('canvas, svg, .maplibregl-canvas-container')) continue;
         const s = getComputedStyle(el);
@@ -57,12 +58,12 @@ for (const theme of ['light', 'dark']) {
           if (prop === 'color' && !el.childNodes.length) continue;
           if (bright(s[prop])) greens.push(`${path(el)} ${prop}=${s[prop]}`);
         }
-        if (/mono|courier|consolas|menlo/i.test(s.fontFamily) && !el.closest('code, kbd, pre') && el.textContent.trim()) mono.push(path(el));
       }
       const nav = document.querySelector('.es-nav');
       return {
         greens: [...new Set(greens)].slice(0, 60),
-        mono: [...new Set(mono)].slice(0, 30),
+        bodyBg: getComputedStyle(document.body).backgroundColor,
+        agpl: !!document.querySelector('a[href$="/labs/source.txt"]'),
         navVisible: !!nav && nav.getBoundingClientRect().height > 0,
         hScroll: document.documentElement.scrollWidth > innerWidth + 1,
         panelTitleFont: getComputedStyle(document.querySelector('.panel-title') ?? document.body).fontFamily,
@@ -73,11 +74,11 @@ for (const theme of ['light', 'dark']) {
       };
     });
     // Each context is fresh (no localStorage): this is a first visit, so the six desk tabs must exist.
-    const ok = r.greens.length === 0 && r.mono.length === 0 && r.navVisible && !r.hScroll && /Source Serif/.test(r.panelTitleFont)
+    const ok = r.greens.length === 0 && r.bodyBg === 'rgb(0, 0, 0)' && r.agpl && r.navVisible && !r.hScroll && /IBM Plex Mono/.test(r.panelTitleFont)
       && r.synthesisItems >= 5 && r.deskTabs === 6 && r.labLinks >= 1 && !r.headerVisibleOnMobile;
     if (!ok) failed = true;
     report[`${theme}-${size}`] = { ok, ...r };
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${theme}-${size}: greens=${r.greens.length} mono=${r.mono.length} nav=${r.navVisible} hScroll=${r.hScroll} synthesis=${r.synthesisItems} tabs=${r.deskTabs} labLinks=${r.labLinks} mobileHeader=${r.headerVisibleOnMobile}`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${theme}-${size}: greens=${r.greens.length} bodyBg=${r.bodyBg} agpl=${r.agpl} nav=${r.navVisible} hScroll=${r.hScroll} synthesis=${r.synthesisItems} tabs=${r.deskTabs} labLinks=${r.labLinks} mobileHeader=${r.headerVisibleOnMobile}`);
     await ctx.close();
   }
 }
