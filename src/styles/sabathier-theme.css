@@ -228,3 +228,8 @@
   outline: 2px solid var(--pen);
   outline-offset: 2px;
 }
+
+/* Upstream Pro-only surfaces have no meaning on this self-hosted desk. */
+[data-variant="finance"] :is(#us-tab-api-keys, #us-tab-embeds, #us-tab-mcp-clients, .framework-settings-btn--locked, .panel-pro-badge) {
+  display: none;
+}

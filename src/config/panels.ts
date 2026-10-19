@@ -483,9 +483,6 @@ export const FINANCE_PANELS: Record<string, PanelConfig> = {
   // Available from panel settings / CMD+K, off by default to keep the desk readable.
   'live-webcams': { name: 'Live Webcams', enabled: false, priority: 2 },
   'windy-webcams': { name: 'Windy Live Webcam', enabled: false, priority: 2 },
-  'stock-analysis': { name: 'Premium Stock Analysis', enabled: false, priority: 1, premium: 'locked' },
-  'stock-backtest': { name: 'Premium Backtesting', enabled: false, priority: 1, premium: 'locked' },
-  'daily-market-brief': { name: 'Daily Market Brief', enabled: false, priority: 1, premium: 'locked' },
   fx: { name: 'FX Rates', enabled: false, priority: 2 },
   // Required for the pipeline-click path (energy:open-pipeline-detail listener
   // lives in PipelineStatusPanel); stays disabled so its slot never auto-opens.
@@ -497,8 +494,6 @@ export const FINANCE_PANELS: Record<string, PanelConfig> = {
   'ai-tokens': { name: 'AI Tokens', enabled: false, priority: 2 },
   'other-tokens': { name: 'Alt Tokens', enabled: false, priority: 2 },
   economic: { name: 'Macro Stress', enabled: false, priority: 1 },
-  'global-procurement': { name: 'Global Procurement', enabled: false, priority: 1, premium: 'locked' as const },
-  'trade-policy': { name: 'Trade Policy', enabled: false, priority: 1, premium: 'locked' as const },
   'sanctions-pressure': { name: 'Sanctions Pressure', enabled: false, priority: 1 },
   'supply-chain': { name: 'Supply Chain', enabled: false, priority: 1 },
   'china-corridors': { name: 'China Logistics Corridors', enabled: false, priority: 2 },
@@ -524,11 +519,9 @@ export const FINANCE_PANELS: Record<string, PanelConfig> = {
   gccNews: { name: 'GCC Business News', enabled: false, priority: 2 },
   'gulf-economies': { name: 'Gulf Economies', enabled: false, priority: 1 },
   'consumer-prices': { name: 'Consumer Prices', enabled: false, priority: 1 },
-  'wsb-ticker-scanner': { name: 'WSB Ticker Scanner', enabled: false, priority: 75, premium: 'locked' },
   'airline-intel': { name: 'Airline Intelligence', enabled: false, priority: 2 },
   'world-clock': { name: 'World Clock', enabled: false, priority: 2 },
   monitors: { name: 'My Monitors', enabled: false, priority: 2 },
-  'latest-brief': { name: 'Latest Brief', enabled: false, priority: 1, premium: 'locked' as const },
   'nq-pulse': { name: 'NQ Pulse', enabled: false, priority: 1 },
   'nq-catalysts': { name: 'NQ Catalysts', enabled: false, priority: 1 },
   'nq-news': { name: 'NQ News', enabled: false, priority: 2 },

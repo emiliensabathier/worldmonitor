@@ -43,12 +43,21 @@ echo "== source offer"
 offer=$(mktemp)
 {
   cat <<EOF
-Source code of the dashboard served at ${SITE_URL%/}
+Licence and source of Sabathier Terminal, served at ${SITE_URL%/}
 
-This site runs World Monitor (https://github.com/koala73/worldmonitor),
-licensed AGPL-3.0-only, at upstream commit
-$UPSTREAM_COMMIT, with the patch below applied
-and built with VITE_VARIANT=finance and SITE_URL=$SITE_URL.
+Sabathier Terminal is a modified version of World Monitor
+(https://github.com/koala73/worldmonitor).
+World Monitor: Copyright (C) 2024-2026 Elie Habib.
+Modifications: Copyright (C) 2026 Emilien Sabathier.
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, version 3 (AGPL-3.0-only). It is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. Full licence text: https://www.gnu.org/licenses/agpl-3.0.html
+
+Built from upstream commit $UPSTREAM_COMMIT with the patch below applied,
+VITE_VARIANT=finance and SITE_URL=$SITE_URL.
 
 Complete corresponding source = that commit + this patch.
 Same tree as a git branch: $BRANCH_URL (commit $HEAD_COMMIT)

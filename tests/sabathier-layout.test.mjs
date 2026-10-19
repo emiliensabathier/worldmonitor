@@ -14,15 +14,15 @@ test('the fork-only Labs and Source header links are gone', () => {
   assert.doesNotMatch(src, /<a class="copy-link-btn" href="\/labs\/">Labs<\/a>/);
 });
 
-test('the footer keeps its hook class, the AGPL source link and the upstream credit', () => {
+test('the footer keeps its hook class and the AGPL licence and source link (upstream copyright lives there)', () => {
   assert.match(src, /<footer class="site-footer es-foot">/);
-  assert.match(src, /href="\/labs\/source\.txt"/);
-  assert.match(src, /Built on World Monitor/);
+  assert.match(src, /href="\/labs\/source\.txt">\$\{getCurrentLanguage\(\) === 'fr' \? 'Licence et source \(AGPL-3\.0\)' : 'Licence and source \(AGPL-3\.0\)'\}/);
+  assert.doesNotMatch(src, /Built on World Monitor|Basé sur World Monitor/);
   assert.doesNotMatch(src, /SABATHIER TERMINAL<\/span>\s*<span class="site-footer-sub">/);
 });
 
 test('the footer speaks French on a French Terminal', () => {
-  assert.match(src, /Basé sur World Monitor/);
+  assert.match(src, /Licence et source \(AGPL-3\.0\)/);
 });
 
 test('restoring the desk asks through the in-app confirm dialog', () => {

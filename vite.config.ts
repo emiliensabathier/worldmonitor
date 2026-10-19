@@ -12,6 +12,8 @@ import { appendChunkOwnership, chunkHasFirstPartyModule } from './shared/chunk-o
 import { VARIANT_META, type VariantMeta } from './src/config/variant-meta';
 import { bakeVariantIntoPrepaint } from './shared/variant-prepaint.mjs';
 import { criticalSabathierCss } from './shared/sabathier-critical.mjs';
+import { sabathierShell } from './shared/sabathier-shell.mjs';
+import { VARIANT_SEO_PARAGRAPHS } from './src/config/variant-seo-summaries';
 import { readFileSync } from 'fs';
 import {
   WEB_DASHBOARD_VARIANTS,
@@ -282,6 +284,8 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
           readFileSync(resolve(__dirname, 'src/styles/sabathier-theme.css'), 'utf8'),
         );
         result = result.replace('</head>', `<style data-sabathier-critical>${critical}</style>\n</head>`);
+        // The deployment's own identity in place of upstream's product metadata and SEO copy.
+        result = sabathierShell(result, { siteUrl, paragraphs: [...VARIANT_SEO_PARAGRAPHS.finance] });
       }
 
       // Desktop CSP: inject localhost wildcard for dynamic sidecar port.
