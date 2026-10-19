@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh World Monitor AI insights every 40 minutes (keeps them under the 1 h client limit)
+
+[Timer]
+OnBootSec=15min
+OnUnitInactiveSec=40min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

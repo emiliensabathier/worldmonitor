@@ -1,0 +1,18 @@
+# Refreshes only the AI insights (world brief) between the full seeder runs.
+# The client rejects insights older than one hour (INSIGHTS_MAX_AGE_MS, shared/insights-snapshot.js),
+# upstream assumes a 30-min cron, while worldmonitor-seed.timer runs the whole batch every ~2h30:
+# without this unit the AI Insights panel shows "Unavailable" for most of each cycle.
+# One LLM call (wmllm, 127.0.0.1:8787) per run. Install: sudo cp selfhost/systemd/worldmonitor-insights.* /etc/systemd/system/
+[Unit]
+Description=World Monitor AI insights refresh (emiliensabathier.fr)
+After=docker.service wmllm.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/worldmonitor
+Nice=10
+MemoryMax=512M
+TimeoutStartSec=15min
+ExecStart=/bin/sh -c 'set -a; . ./.env; set +a; export UPSTASH_REDIS_REST_URL=http://localhost:8079 UPSTASH_REDIS_REST_TOKEN="$REDIS_TOKEN"; exec node scripts/seed-insights.mjs'
