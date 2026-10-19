@@ -322,3 +322,161 @@
 [data-variant="finance"] :is(#us-tab-api-keys, #us-tab-embeds, #us-tab-mcp-clients, .framework-settings-btn--locked, .panel-pro-badge) {
   display: none;
 }
+
+/* ---------- Terminal shell (function keys, command line, ticker, fixed function screens) ---------- */
+/* .bb-shell is set on <html> by panel-layout.ts for the finance web build. */
+:root[data-variant="finance"].bb-shell :is(.header, #panelTabsMount, .add-panel-block) { display: none; }
+:root[data-variant="finance"].bb-shell :is(.map-resize-handle, .map-width-resize-handle, .panel-resize-handle, .panel-col-resize-handle) { display: none; }
+:root[data-variant="finance"].bb-shell :is(#mapSideBtn, #mapPinBtn, #mapFullscreenBtn) { display: none; }
+:root[data-variant="finance"].bb-shell .panel-header :is(.panel-close-btn, .panel-info-wrapper) { display: none; }
+
+:root[data-variant="finance"].bb-shell .bb-shell { background: var(--bb-bg); position: relative; z-index: 15; }
+:root[data-variant="finance"].bb-shell .bb-cmd {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 12px;
+  border-bottom: 1px solid var(--bb-rule);
+}
+:root[data-variant="finance"].bb-shell .bb-prompt { color: var(--bb-amber); font-weight: 600; }
+:root[data-variant="finance"].bb-shell .bb-cmd input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bb-input);
+  color: var(--bb-value);
+  border: 0;
+  font: inherit;
+  padding: 2px 6px;
+  text-transform: uppercase;
+}
+:root[data-variant="finance"].bb-shell .bb-cmd input::placeholder { color: var(--bb-dim); text-transform: none; }
+:root[data-variant="finance"].bb-shell .bb-cmd input:focus-visible { outline: 1px solid var(--bb-amber); }
+:root[data-variant="finance"].bb-shell .bb-clock { color: var(--bb-value); white-space: nowrap; }
+:root[data-variant="finance"].bb-shell .bb-help {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 30;
+  background: #0a0a0a;
+  border: 1px solid var(--bb-amber);
+  padding: 6px 8px;
+}
+:root[data-variant="finance"].bb-shell .bb-help-msg { margin: 0 0 4px; color: var(--bb-down); }
+:root[data-variant="finance"].bb-shell .bb-help-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px 12px; }
+:root[data-variant="finance"].bb-shell .bb-help-list button {
+  background: transparent;
+  border: 0;
+  color: var(--bb-dim);
+  font: inherit;
+  text-align: left;
+  padding: 2px 0;
+  cursor: pointer;
+}
+:root[data-variant="finance"].bb-shell .bb-help-list button b { color: var(--bb-amber); margin-right: 6px; }
+:root[data-variant="finance"].bb-shell .bb-help-list button:hover { color: var(--bb-value); }
+:root[data-variant="finance"].bb-shell .bb-keys {
+  display: flex;
+  gap: 3px;
+  padding: 3px 12px;
+  border-bottom: 1px solid var(--bb-rule);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+:root[data-variant="finance"].bb-shell .bb-key {
+  flex: none;
+  background: var(--bb-key);
+  color: var(--bb-amber);
+  border: 0;
+  padding: 2px 12px;
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+:root[data-variant="finance"].bb-shell .bb-key small { display: block; font-weight: 400; font-size: 9px; color: #aaaaaa; }
+:root[data-variant="finance"].bb-shell .bb-key:hover { background: #3a3a3a; }
+:root[data-variant="finance"].bb-shell .bb-key[aria-pressed="true"] { background: var(--bb-amber); color: #000; }
+:root[data-variant="finance"].bb-shell .bb-key[aria-pressed="true"] small { color: #000; }
+:root[data-variant="finance"].bb-shell .bb-key:focus-visible { outline: 1px solid var(--bb-value); outline-offset: 1px; }
+
+/* Ticker: two identical groups in one track, scrolled by -50% for a seamless loop. */
+:root[data-variant="finance"].bb-shell .es-syn { padding: 2px 0; background: #0a0a0a; overflow: hidden; }
+:root[data-variant="finance"].bb-shell .es-syn-figures { display: block; overflow: hidden; white-space: nowrap; }
+:root[data-variant="finance"].bb-shell .es-syn-track {
+  display: inline-flex;
+  animation: bb-tick var(--bb-tick-s, 60s) linear infinite;
+}
+:root[data-variant="finance"].bb-shell .es-syn-group { display: inline-flex; gap: 18px; padding-right: 18px; }
+:root[data-variant="finance"].bb-shell .es-syn-item { min-height: 0; padding: 0; }
+:root[data-variant="finance"].bb-shell .es-syn:hover .es-syn-track { animation-play-state: paused; }
+@keyframes bb-tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-variant="finance"].bb-shell .es-syn-track { animation: none; }
+  :root[data-variant="finance"].bb-shell .es-syn-figures { overflow-x: auto; scrollbar-width: none; }
+}
+
+/* Function numbers and home-function links in panel headers. */
+:root[data-variant="finance"].bb-shell .panel-title[data-bb-n]::before { content: attr(data-bb-n) ") "; color: var(--bb-amber); }
+:root[data-variant="finance"].bb-shell .bb-fn-link {
+  margin-left: auto;
+  background: transparent;
+  color: var(--bb-amber);
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  padding: 0 4px;
+  cursor: pointer;
+}
+:root[data-variant="finance"].bb-shell .bb-fn-link:hover { color: var(--bb-value); text-decoration: underline; }
+
+/* Status bar (the site footer): LIVE, last quote update, owner, licence link, one line. */
+:root[data-variant="finance"].bb-shell .site-footer.es-foot { padding: 0; font-size: 11px; }
+:root[data-variant="finance"].bb-shell .site-footer.es-foot .es-foot-inner {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  max-width: none;
+  margin: 0;
+  padding: 2px 12px;
+}
+:root[data-variant="finance"].bb-shell .bb-live { color: var(--bb-up); display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+:root[data-variant="finance"].bb-shell .bb-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bb-up); }
+:root[data-variant="finance"].bb-shell .bb-stamp { color: var(--bb-dim); }
+:root[data-variant="finance"].bb-shell .bb-owner { margin-left: auto; color: var(--bb-dim); }
+
+/* Desktop: the page is the viewport; the active function's grid fills what the chrome leaves. */
+@media (min-width: 769px) {
+  :root[data-variant="finance"].bb-shell #app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+  :root[data-variant="finance"].bb-shell #app > * { flex: none; }
+  :root[data-variant="finance"].bb-shell .main-content[data-fn] {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 2px;
+    padding: 2px;
+    overflow: hidden;
+    grid-auto-rows: minmax(0, 1fr);
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  :root[data-variant="finance"].bb-shell #panelsGrid { display: contents; }
+  :root[data-variant="finance"].bb-shell #mapSection {
+    min-height: 0;
+    min-width: 0;
+    height: auto;
+    width: auto;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--bb-rule);
+  }
+  :root[data-variant="finance"].bb-shell #mapContainer { flex: 1 1 auto; min-height: 0; height: auto; }
+  :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel {
+    min-height: 0;
+    min-width: 0;
+    height: auto;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel-content { flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; }
+}

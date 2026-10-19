@@ -22,7 +22,7 @@ function splitList(sel) {
 }
 
 test('every rule is scoped to the finance variant', () => {
-  const selectors = [...css.replace(/@import[^;]+;/g, '').replace(/@font-face\s*\{[^}]*\}/g, '').replace(/@media[^{]+\{/g, '').matchAll(/([^{}@]+)\{/g)].map((m) => m[1].trim()).filter(Boolean);
+  const selectors = [...css.replace(/@import[^;]+;/g, '').replace(/@font-face\s*\{[^}]*\}/g, '').replace(/@keyframes[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').replace(/@media[^{]+\{/g, '').matchAll(/([^{}@]+)\{/g)].map((m) => m[1].trim()).filter(Boolean);
   assert.ok(selectors.length > 10);
   for (const sel of selectors) {
     for (const part of splitList(sel)) {
@@ -119,4 +119,11 @@ test('Bloomberg palette and mono font', () => {
   }
   assert.match(css, /@font-face\s*\{[^}]*IBM Plex Mono[^}]*ibm-plex-mono-latin-400-normal\.woff2/);
   assert.match(css, /--font-mono:\s*var\(--bb-mono\)/);
+});
+
+test('function shell: grid on main, contents grid, hidden tabs and toolbar, ticker animation respects reduced motion', () => {
+  assert.match(css, /:root\[data-variant="finance"\]\.bb-shell #panelsGrid\s*\{[^}]*display:\s*contents/);
+  assert.match(css, /:root\[data-variant="finance"\]\.bb-shell :is\(\.header, #panelTabsMount[^)]*\)\s*\{[^}]*display:\s*none/);
+  assert.match(css, /@keyframes bb-tick/);
+  assert.match(css, /prefers-reduced-motion: reduce\)\s*\{[^@]*\.es-syn-track\s*\{[^}]*animation:\s*none/);
 });

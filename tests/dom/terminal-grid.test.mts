@@ -1,0 +1,56 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import { TerminalGrid } from '@/app/terminal-grid';
+
+function dom() {
+  const main = document.createElement('main');
+  main.className = 'main-content';
+  main.innerHTML = `<div id="mapSection" class="map-section"><div class="panel-header"><span class="panel-title">Map</span></div></div>
+    <div id="panelsGrid" class="panels-grid">
+      <div class="panel" data-panel="markets"><div class="panel-header"><span class="panel-title">Markets</span></div></div>
+      <div class="panel" data-panel="insights"><div class="panel-header"><span class="panel-title">AI</span></div></div>
+      <div class="panel hidden" data-panel="forex"><div class="panel-header"><span class="panel-title">FX</span></div></div>
+    </div>`;
+  document.body.append(main);
+  return main;
+}
+afterEach(() => document.body.replaceChildren());
+
+describe('TerminalGrid', () => {
+  it('lays out the function grid, numbers panels in reading order and links their home function', () => {
+    const main = dom(); const opened: string[] = [];
+    const grid = new TerminalGrid(main, { lang: 'en', onOpen: (c) => opened.push(c) });
+    grid.apply('TOP');
+    expect(main.dataset.fn).toBe('TOP');
+    // live-news and finance-labs are absent: their cells go to the panel above (map, insights).
+    expect(main.style.gridTemplateAreas).toBe('"markets map insights" "markets map insights"');
+    expect(main.style.gridTemplateColumns).toBe('1.1fr 1.4fr 1fr');
+    const markets = main.querySelector<HTMLElement>('[data-panel="markets"]')!;
+    expect(markets.style.gridArea).toBe('markets');
+    expect(main.querySelector<HTMLElement>('#mapSection')!.style.gridArea).toBe('map');
+    expect(markets.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('1');
+    expect(main.querySelector('#mapSection .panel-title')!.getAttribute('data-bb-n')).toBe('2');
+    const link = markets.querySelector<HTMLButtonElement>('.bb-fn-link')!;
+    expect(link.textContent).toBe('WEI');
+    link.click();
+    expect(opened).toEqual(['WEI']);
+    expect(main.querySelector('[data-panel="insights"] .bb-fn-link')).toBeNull();
+  });
+  it('a panel mounted later takes its cell back', async () => {
+    const main = dom();
+    const grid = new TerminalGrid(main, { lang: 'en', onOpen: () => {} });
+    grid.apply('TOP');
+    const news = document.createElement('div');
+    news.className = 'panel'; news.dataset.panel = 'live-news';
+    main.querySelector('#panelsGrid')!.append(news);
+    grid.refresh();
+    expect(main.style.gridTemplateAreas).toBe('"markets map insights" "markets live-news live-news"');
+    grid.destroy();
+  });
+  it('no home link to the function on screen', () => {
+    const main = dom();
+    const grid = new TerminalGrid(main, { lang: 'en', onOpen: () => {} });
+    main.querySelector('[data-panel="forex"]')!.classList.remove('hidden');
+    grid.apply('FX');
+    expect(main.querySelector('[data-panel="forex"] .bb-fn-link')).toBeNull();
+  });
+});

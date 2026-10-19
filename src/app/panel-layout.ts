@@ -49,7 +49,9 @@ import { NQ_PULSE_DISCLOSURE } from '@/config/nq-context';
 import { getCurrentLanguage, t } from '@/services/i18n';
 import { mountSiteNav, renderSiteNav } from '@/app/site-nav';
 import { attachLabLinks } from '@/app/lab-links';
-import { prepareFirstRunDesk } from '@/config/sabathier-desk';
+import { isFunctionCode, prepareTerminalDesk } from '@/config/terminal-functions';
+import { TerminalShell, functionFromHash } from '@/app/terminal-shell';
+import { TerminalGrid } from '@/app/terminal-grid';
 import { SynthesisBar } from '@/components/SynthesisBar';
 import { getCurrentTheme } from '@/utils';
 import { trackCriticalBannerAction, trackCheckoutSuccess, trackCheckoutFailed, trackGateHit, trackMapViewChange, trackLayoutCustomized, replayPendingCheckoutSuccess, replayPendingProFunnelEvents, replayPendingConversionEvents, replayPendingMissionReturn } from '@/services/analytics';
@@ -1303,7 +1305,9 @@ export class PanelLayoutManager implements AppModule {
       </nav>
       <footer class="site-footer es-foot">
         <div class="es-foot-inner">
-          <span>Emilien Sabathier &middot; Rouen</span>
+          <span class="bb-live"><span class="bb-live-dot" aria-hidden="true"></span>LIVE</span>
+          <span class="bb-stamp"></span>
+          <span class="bb-owner">Emilien Sabathier &middot; Rouen</span>
           <a href="/labs/source.txt">${getCurrentLanguage() === 'fr' ? 'Licence et source (AGPL-3.0)' : 'Licence and source (AGPL-3.0)'}</a>
         </div>
       </footer>
@@ -1328,16 +1332,18 @@ export class PanelLayoutManager implements AppModule {
       }
     });
 
-    // Sabathier desk, first visit: store the six tabs and the first tab's panels BEFORE creating
-    // panels, so only the Overview panels mount visible (no mount-then-hide, no early reload).
+    // Sabathier Terminal: the eight function screens are stored as eight tabs. Store them (first visit,
+    // former six-tab desk) and the panels of the function in the address BEFORE creating panels, so only
+    // that function's panels mount visible (no mount-then-hide, no early reload).
     if (SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp) {
-      const desk = prepareFirstRunDesk(loadTabsState(), this.ctx.panelSettings, getCurrentLanguage(), generateTabId);
+      document.documentElement.classList.add('bb-shell');
+      const desk = prepareTerminalDesk(loadTabsState(), this.ctx.panelSettings, getCurrentLanguage(), generateTabId, functionFromHash(location.hash));
       if (desk) {
-        const first = desk.tabs[0]!;
-        this.ctx.panelSettings = { ...first.panelSettings };
+        const active = desk.tabs.find((tab) => tab.id === desk.activeTabId) ?? desk.tabs[0]!;
+        this.ctx.panelSettings = { ...active.panelSettings };
         saveToStorage(STORAGE_KEYS.panels, this.ctx.panelSettings);
-        saveToStorage(this.ctx.PANEL_ORDER_KEY, first.panelOrder);
-        saveToStorage(this.ctx.PANEL_ORDER_KEY + '-bottom-set', first.bottomSet);
+        saveToStorage(this.ctx.PANEL_ORDER_KEY, active.panelOrder);
+        saveToStorage(this.ctx.PANEL_ORDER_KEY + '-bottom-set', active.bottomSet);
         saveTabsState(desk);
       }
     }
@@ -1398,17 +1404,36 @@ export class PanelLayoutManager implements AppModule {
     this.updateTabCapLock();
 
     if (SITE_VARIANT === 'finance' && !this.ctx.isDesktopApp) {
+      // Terminal shell: command line + function keys above a scrolling ticker; each function is a tab
+      // (deskKey = code) laid out by TerminalGrid. The tab bar itself is hidden by the shell CSS.
+      const lang = getCurrentLanguage();
+      const main = document.getElementById('main');
+      let grid: TerminalGrid | null = null;
+      const shell = new TerminalShell({
+        lang,
+        onOpen: (code) => {
+          const tab = this.tabsState?.tabs.find((t) => t.deskKey === code);
+          if (tab && tab.id !== this.tabsState?.activeTabId) this.applyWebMcpTabAction({ type: 'select', tabId: tab.id });
+          grid?.apply(code);
+        },
+      });
+      if (main) grid = new TerminalGrid(main, { lang, onOpen: (code) => shell.open(code) });
+      mount.parentNode?.insertBefore(shell.getElement(), mount);
       const bar = new SynthesisBar({
         // Loaded on demand: keeps the market services out of the layout's static module graph.
         load: async () => (await import('@/components/synthesis-data')).loadSynthesisData(),
-        lang: getCurrentLanguage(),
-        onSelectDesk: (desk) => {
-          const tab = this.tabsState?.tabs.find((t) => t.deskKey === desk);
-          if (tab) this.applyWebMcpTabAction({ type: 'select', tabId: tab.id });
-        },
+        lang,
+        ticker: true,
+        stampTarget: document.querySelector<HTMLElement>('.bb-stamp') ?? undefined,
+        onSelectDesk: (code) => shell.open(code),
       });
       mount.parentNode?.insertBefore(bar.getElement(), mount);
       bar.start();
+      shell.start();
+      const active = this.tabsState?.tabs.find((t) => t.id === this.tabsState?.activeTabId)?.deskKey;
+      const code = isFunctionCode(active) ? active : 'TOP';
+      shell.setActive(code);
+      grid?.apply(code);
     }
   }
 

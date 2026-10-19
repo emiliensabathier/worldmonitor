@@ -20,6 +20,26 @@ describe('SynthesisBar', () => {
     expect(el.querySelector('b')).toBeNull();
   });
 
+  it('ticker mode: a doubled track (copy hidden from assistive tech), no brief, stamp in the status bar', async () => {
+    const stampTarget = document.createElement('span');
+    const onSelectDesk = vi.fn();
+    const bar = new SynthesisBar({ load: async () => data, lang: 'en', onSelectDesk, ticker: true, stampTarget });
+    await bar.refresh();
+    const el = bar.getElement();
+    const groups = el.querySelectorAll('.es-syn-track > .es-syn-group');
+    expect(groups).toHaveLength(2);
+    expect(groups[0]!.getAttribute('aria-hidden')).toBeNull();
+    expect(groups[1]!.getAttribute('aria-hidden')).toBe('true');
+    expect([...groups[1]!.querySelectorAll('button')].every((b) => b.tabIndex === -1)).toBe(true);
+    expect(groups[0]!.querySelectorAll('button.es-syn-item')).toHaveLength(3);
+    expect(el.querySelector('.es-syn-brief')).toBeNull();
+    expect(el.querySelector('.es-syn-stamp')).toBeNull();
+    expect(stampTarget.textContent).not.toBe('');
+    groups[1]!.querySelector<HTMLButtonElement>('button')!.click();
+    expect(onSelectDesk).toHaveBeenCalledWith('GOVT');
+    expect((el.querySelector('.es-syn-track') as HTMLElement).style.getPropertyValue('--bb-tick-s')).toBe('30s');
+  });
+
   it('opens the matching desk tab on click', async () => {
     const onSelectDesk = vi.fn();
     const bar = new SynthesisBar({ load: async () => data, lang: 'en', onSelectDesk });
