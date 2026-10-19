@@ -109,6 +109,8 @@ export function setTheme(theme: Theme): void {
 
 function applyTheme(theme: Theme): void {
   theme = effectiveTheme(theme);
+  // Sabathier: a site-theme choice leaves the Terminal dark; firing theme-changed would reload the basemap.
+  if (document.documentElement.dataset.variant === 'finance' && document.documentElement.dataset.theme === theme) return;
   document.documentElement.dataset.theme = theme;
   invalidateColorCache();
   updateThemeMetaColor(theme);

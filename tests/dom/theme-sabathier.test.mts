@@ -57,6 +57,18 @@ describe('Sabathier shared theme cookie (finance variant)', () => {
     expect(getCurrentTheme()).toBe('dark');
   });
 
+  it('a preference change that leaves the Terminal dark fires no theme-changed (no basemap reload)', () => {
+    setThemePreference('dark');
+    const seen: unknown[] = [];
+    const on = (e: Event) => seen.push(e);
+    window.addEventListener('theme-changed', on);
+    setThemePreference('light');
+    setThemePreference('auto');
+    window.removeEventListener('theme-changed', on);
+    expect(seen).toHaveLength(0);
+    expect(getThemePreference()).toBe('auto');
+  });
+
   it('other variants still switch to light', () => {
     document.documentElement.dataset.variant = 'full';
     setThemePreference('light');
