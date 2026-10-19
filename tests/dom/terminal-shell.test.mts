@@ -89,4 +89,11 @@ describe('TerminalShell', () => {
     expect(opened.at(-1)).toBe('CMDTY');
     expect(push).not.toHaveBeenCalled();
   });
+  it('brings the active key into view', () => {
+    const key = shell.getElement().querySelector<HTMLElement>('.bb-key[data-fn="LABS"]')!;
+    const spy = vi.fn();
+    key.scrollIntoView = spy;
+    shell.setActive('LABS');
+    expect(spy).toHaveBeenCalledWith({ inline: 'nearest', block: 'nearest' });
+  });
 });

@@ -56,4 +56,21 @@ describe('TerminalGrid', () => {
     grid.apply('FX');
     expect(main.querySelector('[data-panel="forex"] .bb-fn-link')).toBeNull();
   });
+  it('on phones, numbers and orders panels by the mobile order, and follows width changes', () => {
+    const main = dom();
+    let listener: ((e: { matches: boolean }) => void) | null = null;
+    const mq = { matches: true, addEventListener: (_: string, l: (e: { matches: boolean }) => void) => { listener = l; }, removeEventListener: () => {} };
+    const grid = new TerminalGrid(main, { lang: 'en', onOpen: () => {}, mobileQuery: mq as unknown as MediaQueryList });
+    grid.apply('TOP'); // mobile order: markets, insights, live-news, map, finance-labs
+    const insights = main.querySelector<HTMLElement>('[data-panel="insights"]')!;
+    const map = main.querySelector<HTMLElement>('#mapSection')!;
+    expect(insights.style.order).toBe('1');
+    expect(map.style.order).toBe('3');
+    expect(insights.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('2');
+    expect(map.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('4');
+    mq.matches = false; listener!({ matches: false });
+    expect(insights.style.order).toBe('');
+    expect(insights.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('3');
+    grid.destroy();
+  });
 });

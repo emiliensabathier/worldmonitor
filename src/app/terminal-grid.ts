@@ -15,8 +15,16 @@ export class TerminalGrid {
   private code: FunctionCode | null = null;
   private frame = 0;
   private readonly observer: MutationObserver;
+  private readonly mobile: MediaQueryList | null;
+  private readonly onWidth = () => this.refresh();
 
-  constructor(private readonly main: HTMLElement, private readonly opts: { lang: string; onOpen: (code: FunctionCode) => void }) {
+  constructor(
+    private readonly main: HTMLElement,
+    private readonly opts: { lang: string; onOpen: (code: FunctionCode) => void; mobileQuery?: MediaQueryList },
+  ) {
+    // Phones stack the panels in the function's mobile order (CSS order); numbers follow what is on screen.
+    this.mobile = opts.mobileQuery ?? (typeof matchMedia === 'function' ? matchMedia('(max-width: 768px)') : null);
+    this.mobile?.addEventListener('change', this.onWidth);
     // Only structural changes matter: grid children added/removed/shown/hidden, not panel content updates.
     this.observer = new MutationObserver((records) => {
       const relevant = records.some((r) => {
@@ -41,6 +49,7 @@ export class TerminalGrid {
 
   destroy(): void {
     this.observer.disconnect();
+    this.mobile?.removeEventListener('change', this.onWidth);
     if (this.frame) cancelAnimationFrame(this.frame);
   }
 
@@ -60,6 +69,8 @@ export class TerminalGrid {
   private layout(): void {
     const fn = getFunction(this.code!);
     const keys = functionPanelKeys(fn);
+    const stacked = !!this.mobile?.matches;
+    const order: readonly string[] = stacked ? fn.mobile : keys;
     const items = this.items();
     const areas = collapseAreas(fn.areas, new Set(keys.filter((k) => items.has(k))));
     const template = areas.map((row) => `"${row}"`).join(' ');
@@ -79,8 +90,10 @@ export class TerminalGrid {
       el.classList.toggle('bb-placed', n >= 0);
       const header = el.querySelector<HTMLElement>(':scope > .panel-header');
       const title = header?.querySelector<HTMLElement>('.panel-title');
-      if (n >= 0) title?.setAttribute('data-bb-n', String(n + 1));
+      if (n >= 0) title?.setAttribute('data-bb-n', String(order.indexOf(key) + 1));
       else title?.removeAttribute('data-bb-n');
+      if (n >= 0 && stacked) el.style.order = String(fn.mobile.indexOf(key));
+      else el.style.removeProperty('order');
       const home = n >= 0 ? panelHome(key) : null;
       const want = home && home !== fn.code ? home : null;
       const existing = header?.querySelector<HTMLElement>(':scope > .bb-fn-link');

@@ -130,6 +130,8 @@ export class TerminalShell {
 
   setActive(code: FunctionCode): void {
     for (const [c, key] of this.keys) key.setAttribute('aria-pressed', String(c === code));
+    // Phones scroll the key row: keep the active key in view.
+    this.keys.get(code)?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' });
   }
 
   start(): void {
