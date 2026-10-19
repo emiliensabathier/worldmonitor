@@ -27,8 +27,13 @@ function writeSharedThemeCookie(pref: ThemePreference): void {
     : `${SHARED_COOKIE}=${pref}${attrs}; Max-Age=31536000`;
 }
 
+// Sabathier Terminal (finance): always dark (Bloomberg look); the stored preference still drives the site.
+function effectiveTheme(theme: Theme, variant = document.documentElement.dataset.variant): Theme {
+  return variant === 'finance' ? 'dark' : theme;
+}
+
 function resolveThemeColor(theme: Theme, variant: string | undefined): string {
-  if (variant === 'finance') return theme === 'dark' ? '#121316' : '#fdfdfb';
+  if (variant === 'finance') return '#000000';
   if (theme === 'dark') return variant === 'happy' ? '#1A2332' : '#0a0f0a';
   return variant === 'happy' ? '#FAFAF5' : '#f8f9fa';
 }
@@ -103,6 +108,7 @@ export function setTheme(theme: Theme): void {
 }
 
 function applyTheme(theme: Theme): void {
+  theme = effectiveTheme(theme);
   document.documentElement.dataset.theme = theme;
   invalidateColorCache();
   updateThemeMetaColor(theme);
@@ -142,6 +148,6 @@ export function applyStoredTheme(): void {
   // theme too, except on Happy, which stays light.
   const followsSystem = raw === 'auto' || (!hasExplicitPreference && variant !== 'happy');
   updateAutoListener(followsSystem ? 'auto' : effective);
-  document.documentElement.dataset.theme = effective;
-  updateThemeMetaColor(effective, variant);
+  document.documentElement.dataset.theme = effectiveTheme(effective, variant);
+  updateThemeMetaColor(effectiveTheme(effective, variant), variant);
 }

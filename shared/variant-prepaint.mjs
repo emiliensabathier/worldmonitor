@@ -4,8 +4,11 @@
 // that silently skipped the first-paint variant and theme on every non-full build).
 export function bakeVariantIntoPrepaint(html, variant) {
   if (variant === 'full') return html;
-  return html.replace(
+  let out = html.replace(
     /if\(v\)document\.documentElement\.dataset\.variant=v;else document\.documentElement\.removeAttribute\('data-variant'\);/,
     `v='${variant}';document.documentElement.dataset.variant=v;`,
   );
+  // Sabathier Terminal (finance): Bloomberg-style, always dark whatever the visitor chose for the site.
+  if (variant === 'finance') out = out.replace("var t=localStorage.getItem('worldmonitor-theme');", "var t='dark';");
+  return out;
 }

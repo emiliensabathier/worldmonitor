@@ -46,11 +46,21 @@ describe('Sabathier shared theme cookie (finance variant)', () => {
     expect(getThemePreference()).toBe('auto');
   });
 
-  it('paints the site paper colour in the browser chrome', () => {
+  it('stays dark whatever the preference, and keeps the choice for the rest of the site', () => {
     setThemePreference('light');
-    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#fdfdfb');
-    setThemePreference('dark');
-    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#121316');
+    expect(getCurrentTheme()).toBe('dark');
+    expect(getThemePreference()).toBe('light');
+    expect(document.cookie).toContain('es-theme=light');
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#000000');
+    document.cookie = 'es-theme=light; Path=/';
+    applyStoredTheme();
+    expect(getCurrentTheme()).toBe('dark');
+  });
+
+  it('other variants still switch to light', () => {
+    document.documentElement.dataset.variant = 'full';
+    setThemePreference('light');
+    expect(getCurrentTheme()).toBe('light');
   });
 
   it('other variants never write the cookie', () => {

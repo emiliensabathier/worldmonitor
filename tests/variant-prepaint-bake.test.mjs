@@ -27,8 +27,13 @@ test('the baked finance prepaint parses and sets variant and stored theme before
   assert.doesNotThrow(() => new Function(script));
   const { dataset, classes } = run(script, { 'worldmonitor-theme': 'light' });
   assert.equal(dataset.variant, 'finance');
-  assert.equal(dataset.theme, 'light');
+  assert.equal(dataset.theme, 'dark'); // the Terminal is always dark, whatever the stored choice
   assert.ok(classes.has('js'));
+});
+
+test('other non-full variants still honour the stored theme', () => {
+  const { dataset } = run(prepaint(bakeVariantIntoPrepaint(indexHtml, 'tech')), { 'worldmonitor-theme': 'light' });
+  assert.equal(dataset.theme, 'light');
 });
 
 test('the full variant keeps the source script untouched', () => {
