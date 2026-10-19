@@ -23,9 +23,12 @@ describe('TerminalGrid', () => {
     expect(main.dataset.fn).toBe('TOP');
     // live-news and finance-labs are absent: their cells go to the panel above (map, insights).
     expect(main.style.gridTemplateAreas).toBe('"markets map insights" "markets map insights"');
-    expect(main.style.gridTemplateColumns).toBe('1.1fr 1.4fr 1fr');
+    expect(main.style.gridTemplateColumns).toBe('minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 1fr)');
+    expect(main.style.gridTemplateRows).toBe('minmax(0, 1fr) minmax(0, 1fr)');
     const markets = main.querySelector<HTMLElement>('[data-panel="markets"]')!;
     expect(markets.style.gridArea).toBe('markets');
+    expect(markets.classList.contains('bb-placed')).toBe(true);
+    expect(main.querySelector('[data-panel="forex"]')!.classList.contains('bb-placed')).toBe(false);
     expect(main.querySelector<HTMLElement>('#mapSection')!.style.gridArea).toBe('map');
     expect(markets.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('1');
     expect(main.querySelector('#mapSection .panel-title')!.getAttribute('data-bb-n')).toBe('2');

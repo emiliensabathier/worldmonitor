@@ -6,15 +6,24 @@ import {
   collapseAreas, functionLabel, functionPanelKeys, getFunction, panelHome, type FunctionCode,
 } from '@/config/terminal-functions';
 
+function tracks(spec: string | undefined, count: number): string {
+  const sizes = spec ? spec.trim().split(/\s+/) : Array.from({ length: count }, () => '1fr');
+  return sizes.map((size) => `minmax(0, ${size})`).join(' ');
+}
+
 export class TerminalGrid {
   private code: FunctionCode | null = null;
-  private lastAreas = '';
   private frame = 0;
   private readonly observer: MutationObserver;
 
   constructor(private readonly main: HTMLElement, private readonly opts: { lang: string; onOpen: (code: FunctionCode) => void }) {
-    this.observer = new MutationObserver(() => {
-      if (this.frame) return;
+    // Only structural changes matter: grid children added/removed/shown/hidden, not panel content updates.
+    this.observer = new MutationObserver((records) => {
+      const relevant = records.some((r) => {
+        const t = r.target as HTMLElement;
+        return t === this.main || t.id === 'panelsGrid' || t.id === 'mapSection' || t.parentElement?.id === 'panelsGrid';
+      });
+      if (!relevant || this.frame) return;
       this.frame = requestAnimationFrame(() => { this.frame = 0; this.refresh(); });
     });
     this.observer.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
@@ -22,7 +31,6 @@ export class TerminalGrid {
 
   apply(code: FunctionCode): void {
     this.code = code;
-    this.lastAreas = '';
     this.layout();
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
   }
@@ -42,7 +50,8 @@ export class TerminalGrid {
     if (map && !map.classList.contains('hidden')) out.set('map', map);
     const grid = this.main.querySelector('#panelsGrid');
     for (const el of grid ? Array.from(grid.children) : []) {
-      if (!(el instanceof HTMLElement) || !el.dataset.panel || el.classList.contains('hidden')) continue;
+      if (!(el instanceof HTMLElement)) continue;
+      if (!el.dataset.panel || el.classList.contains('hidden')) { el.classList.remove('bb-placed'); continue; }
       out.set(el.dataset.panel, el);
     }
     return out;
@@ -54,31 +63,35 @@ export class TerminalGrid {
     const items = this.items();
     const areas = collapseAreas(fn.areas, new Set(keys.filter((k) => items.has(k))));
     const template = areas.map((row) => `"${row}"`).join(' ');
-    if (template === this.lastAreas) return;
-    this.lastAreas = template;
 
     // Writing styles and links below mutates the observed subtree: pause the observer meanwhile.
     this.observer.disconnect();
     this.main.dataset.fn = fn.code;
     this.main.style.gridTemplateAreas = template;
-    this.main.style.gridTemplateColumns = fn.columns ?? '';
-    this.main.style.gridTemplateRows = fn.rows ?? '';
+    // Tracks never grow with their content (minmax(0, …)): the screen is fixed, panels scroll inside.
+    this.main.style.gridTemplateColumns = tracks(fn.columns, areas[0]!.trim().split(/\s+/).length);
+    this.main.style.gridTemplateRows = tracks(fn.rows, areas.length);
     for (const [key, el] of items) {
       const n = keys.indexOf(key);
-      el.style.gridArea = n >= 0 ? key : '';
+      // Important: upstream row-span classes (.panel.span-N) set grid-row with !important.
+      if (n >= 0) el.style.setProperty('grid-area', key, 'important');
+      else el.style.removeProperty('grid-area');
+      el.classList.toggle('bb-placed', n >= 0);
       const header = el.querySelector<HTMLElement>(':scope > .panel-header');
       const title = header?.querySelector<HTMLElement>('.panel-title');
       if (n >= 0) title?.setAttribute('data-bb-n', String(n + 1));
       else title?.removeAttribute('data-bb-n');
-      header?.querySelector(':scope > .bb-fn-link')?.remove();
       const home = n >= 0 ? panelHome(key) : null;
-      if (header && home && home !== fn.code) {
+      const want = home && home !== fn.code ? home : null;
+      const existing = header?.querySelector<HTMLElement>(':scope > .bb-fn-link');
+      if (existing && existing.textContent !== want) existing.remove();
+      if (header && want && !existing?.isConnected) {
         const link = document.createElement('button');
         link.type = 'button';
         link.className = 'bb-fn-link';
-        link.textContent = home;
-        link.title = functionLabel(getFunction(home), this.opts.lang);
-        link.addEventListener('click', (e) => { e.stopPropagation(); this.opts.onOpen(home); });
+        link.textContent = want;
+        link.title = functionLabel(getFunction(want), this.opts.lang);
+        link.addEventListener('click', (e) => { e.stopPropagation(); this.opts.onOpen(want); });
         header.append(link);
       }
     }

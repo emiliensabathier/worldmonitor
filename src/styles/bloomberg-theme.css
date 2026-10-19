@@ -447,8 +447,8 @@
 /* Desktop: the page is the viewport; the active function's grid fills what the chrome leaves. */
 @media (min-width: 769px) {
   :root[data-variant="finance"].bb-shell #app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
-  :root[data-variant="finance"].bb-shell #app > * { flex: none; }
-  :root[data-variant="finance"].bb-shell .main-content[data-fn] {
+  :root[data-variant="finance"].bb-shell #app > :not(#main) { flex: none; }
+  :root[data-variant="finance"].bb-shell #main.main-content[data-fn] {
     display: grid;
     flex: 1 1 auto;
     min-height: 0;
@@ -459,7 +459,9 @@
     grid-auto-columns: minmax(0, 1fr);
   }
   :root[data-variant="finance"].bb-shell #panelsGrid { display: contents; }
-  :root[data-variant="finance"].bb-shell #mapSection {
+  /* Only what TerminalGrid placed is a grid item: anything else would open implicit rows. */
+  :root[data-variant="finance"].bb-shell #main[data-fn] #panelsGrid > :not(.bb-placed) { display: none; }
+  :root[data-variant="finance"].bb-shell #mapSection:not(.hidden) {
     min-height: 0;
     min-width: 0;
     height: auto;
@@ -469,8 +471,8 @@
     border: 1px solid var(--bb-rule);
   }
   :root[data-variant="finance"].bb-shell #mapContainer { flex: 1 1 auto; min-height: 0; height: auto; }
-  :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel {
-    min-height: 0;
+  :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel:not(.hidden) {
+    min-height: 0 !important; /* upstream .panel.span-N reserves a min-height with !important */
     min-width: 0;
     height: auto;
     max-height: none;
