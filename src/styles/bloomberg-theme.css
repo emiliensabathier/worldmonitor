@@ -92,14 +92,14 @@
   display: none;
 }
 
-/* Panels: black, square, separated by 2px of rule colour; solid blue title band in capitals. */
+/* Panels: black, square, hairline frame, 2px apart; solid blue title band in capitals. */
 [data-variant="finance"] :is(.panels-grid, #mapBottomGrid) {
   gap: 2px;
-  background: var(--bb-rule);
+  background: var(--bb-bg);
 }
 [data-variant="finance"] .panel {
   background: var(--bb-bg);
-  border: 0;
+  border: 1px solid var(--bb-rule);
   border-radius: 0;
   box-shadow: none;
 }
@@ -272,6 +272,42 @@
 [data-variant="finance"] .es-syn-item:focus-visible {
   outline: 2px solid var(--bb-amber);
   outline-offset: 2px;
+}
+
+/* AI Insights brief: flat black card with an amber rule instead of the upstream blue wash. */
+[data-variant="finance"] .insights-brief {
+  background: var(--bb-bg);
+  border-left-color: var(--bb-amber);
+}
+
+/* Loading and error radar: amber instead of the upstream green. */
+[data-variant="finance"] .panel-loading-radar { border-color: rgba(251, 139, 30, .35); }
+
+/* SVG map markers (exchanges, financial centres, central banks, commodity hubs): upstream ships no
+   rule for .map-marker, so they fell into the flow and stacked on the left edge. Position them like
+   hotspots and draw small squares instead of emoji, Bloomberg style; labels stay readable. */
+[data-variant="finance"] #mapOverlays .map-marker {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(var(--marker-scale, 1));
+  width: 6px;
+  height: 6px;
+  font-size: 0;
+  line-height: 0;
+  background: var(--bb-amber);
+  cursor: pointer;
+}
+[data-variant="finance"] #mapOverlays .map-marker.tier-mega { width: 8px; height: 8px; }
+[data-variant="finance"] #mapOverlays .central-bank-marker { background: var(--bb-value); }
+[data-variant="finance"] #mapOverlays .financial-center-marker { background: #4a8cff; }
+[data-variant="finance"] #mapOverlays .commodity-hub-marker { background: #c8a400; }
+[data-variant="finance"] #mapOverlays .map-marker .marker-label {
+  position: absolute;
+  left: 10px;
+  top: -5px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--bb-amber);
+  white-space: nowrap;
 }
 
 /* Square corners everywhere in the Terminal; status dots and markers stay round. */
