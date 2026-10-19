@@ -68,8 +68,17 @@ describe('TerminalGrid', () => {
     expect(map.style.order).toBe('3');
     expect(insights.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('2');
     expect(map.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('4');
+    // Upstream mobile rules are layered !important (they beat unlayered sheets): only inline !important wins.
+    const grid0 = main.querySelector<HTMLElement>('#panelsGrid')!;
+    expect(grid0.style.getPropertyValue('display')).toBe('contents');
+    expect(grid0.style.getPropertyPriority('display')).toBe('important');
+    expect(map.style.getPropertyValue('height')).toBe('40vh');
+    expect(map.style.getPropertyPriority('min-height')).toBe('important');
+    expect(insights.style.getPropertyValue('min-height')).toBe('0px');
     mq.matches = false; listener!({ matches: false });
     expect(insights.style.order).toBe('');
+    expect(grid0.style.getPropertyValue('display')).toBe('');
+    expect(map.style.getPropertyValue('height')).toBe('');
     expect(insights.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('3');
     grid.destroy();
   });

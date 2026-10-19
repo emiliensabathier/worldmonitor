@@ -82,12 +82,26 @@ export class TerminalGrid {
     // Tracks never grow with their content (minmax(0, …)): the screen is fixed, panels scroll inside.
     this.main.style.gridTemplateColumns = tracks(fn.columns, areas[0]!.trim().split(/\s+/).length);
     this.main.style.gridTemplateRows = tracks(fn.rows, areas.length);
+    // Upstream's phone rules are !important inside @layer base, which beats any unlayered !important:
+    // only inline !important wins (flatten #panelsGrid, 40vh map).
+    const panelsGrid = this.main.querySelector<HTMLElement>('#panelsGrid');
+    const map = this.main.querySelector<HTMLElement>('#mapSection');
+    const important = (el: HTMLElement | null | undefined, prop: string, value: string) => {
+      if (!el) return;
+      if (stacked) el.style.setProperty(prop, value, 'important');
+      else el.style.removeProperty(prop);
+    };
+    important(panelsGrid, 'display', 'contents');
+    for (const [prop, value] of [['height', '40vh'], ['min-height', '0px'], ['max-height', '40vh']] as const) important(map, prop, value);
     for (const [key, el] of items) {
       const n = keys.indexOf(key);
       // Important: upstream row-span classes (.panel.span-N) set grid-row with !important.
       if (n >= 0) el.style.setProperty('grid-area', key, 'important');
       else el.style.removeProperty('grid-area');
       el.classList.toggle('bb-placed', n >= 0);
+      // Same layered !important trap: upstream .panel.span-N reserves a min-height.
+      if (n >= 0 && key !== 'map') el.style.setProperty('min-height', '0px', 'important');
+      else if (key !== 'map') el.style.removeProperty('min-height');
       const header = el.querySelector<HTMLElement>(':scope > .panel-header');
       const title = header?.querySelector<HTMLElement>('.panel-title');
       if (n >= 0) title?.setAttribute('data-bb-n', String(order.indexOf(key) + 1));

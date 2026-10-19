@@ -139,17 +139,24 @@ for (const theme of ['light', 'dark']) {
       const keyHeights = [...document.querySelectorAll('.bb-key')].map((k) => k.getBoundingClientRect().height);
       const content = document.querySelector('#panelsGrid > .bb-placed .panel-content');
       const agpl = document.querySelector('.site-footer a[href$="/labs/source.txt"]');
+      // Stacking: panel numbers must read 1, 2, 3… from top to bottom; the map stays a ~40vh strip.
+      const titles = [...document.querySelectorAll('.panel-title[data-bb-n]')].filter((t) => t.getBoundingClientRect().height > 0)
+        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top).map((t) => Number(t.getAttribute('data-bb-n')));
+      const ordered = titles.every((n, i) => i === 0 || n > titles[i - 1]);
+      const mapEl = document.getElementById('mapSection');
+      const mapH = mapEl && getComputedStyle(mapEl).display !== 'none' ? mapEl.getBoundingClientRect().height / innerHeight : 0;
       return {
+        ordered, titles: titles.join(','), mapH: Math.round(mapH * 100) / 100,
         fn: main?.dataset.fn, missing, hScroll: document.documentElement.scrollWidth > innerWidth + 1,
         tabBar: !!bar && getComputedStyle(bar).display !== 'none',
         minKey: Math.min(...keyHeights), font: content ? parseFloat(getComputedStyle(content).fontSize) : 0,
         agpl: !!agpl && agpl.getBoundingClientRect().height > 0,
       };
     });
-    const ok = r.fn === code && r.missing.length === 0 && !r.hScroll && !r.tabBar && r.minKey >= 40 && r.font >= 11 && r.agpl;
+    const ok = r.fn === code && r.missing.length === 0 && !r.hScroll && !r.tabBar && r.minKey >= 40 && r.font >= 11 && r.agpl && r.ordered && r.mapH <= 0.45;
     if (!ok) failed = true;
     report[`m-${code}`] = { ok, ...r };
-    console.log(`${ok ? 'ok  ' : 'FAIL'} m-${code}: fn=${r.fn} missing=${r.missing.join(',')} hScroll=${r.hScroll} tabBar=${r.tabBar} minKey=${r.minKey} font=${r.font} agpl=${r.agpl}`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} m-${code}: fn=${r.fn} missing=${r.missing.join(',')} hScroll=${r.hScroll} tabBar=${r.tabBar} minKey=${r.minKey} font=${r.font} agpl=${r.agpl} order=${r.titles} mapH=${r.mapH}`);
   }
   await ctx.close();
 }
