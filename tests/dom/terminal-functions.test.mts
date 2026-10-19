@@ -49,6 +49,14 @@ describe('terminal functions', () => {
     const old = { activeTabId: 'a', tabs: [{ id: 'a', name: 'Overview', deskKey: 'overview', panelSettings: {}, panelOrder: [], bottomSet: [] }] };
     expect(prepareTerminalDesk(old, base, 'en', ids())!.tabs).toHaveLength(8);
   });
+  it('rebuilds a desk whose functions hold another panel set (composition changed since it was stored)', () => {
+    const base = { 'yield-curve': { name: 'Y', enabled: true, priority: 1 }, bonds: { name: 'B', enabled: true, priority: 1 } };
+    const desk = prepareTerminalDesk(null, base, 'en', ids())!;
+    const govt = desk.tabs.find((t) => t.deskKey === 'GOVT')!;
+    govt.panelSettings.bonds = { ...govt.panelSettings.bonds!, enabled: false };
+    expect(prepareTerminalDesk(desk, base, 'en', ids())).not.toBeNull();
+  });
+
   it('a current desk switches to the requested function', () => {
     const base = { markets: { name: 'M', enabled: true, priority: 1 } };
     const desk = prepareTerminalDesk(null, base, 'en', ids())!;

@@ -127,3 +127,7 @@ test('function shell: grid on main, contents grid, hidden tabs and toolbar, tick
   assert.match(css, /@keyframes bb-tick/);
   assert.match(css, /prefers-reduced-motion: reduce\)\s*\{[^@]*\.es-syn-track\s*\{[^}]*animation:\s*none/);
 });
+
+test('function shell: a map height saved by the upstream splitter never overrides the grid cell', () => {
+  assert.match(css, /\.bb-shell #mapContainer\s*\{[^}]*flex:\s*1 1 auto !important;[^}]*height:\s*auto !important/);
+});

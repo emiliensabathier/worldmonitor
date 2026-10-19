@@ -19,9 +19,13 @@ function clockPart(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat('fr-FR', { timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(date);
 }
 
+// Keys typed on a control (Space/Enter activate it, letters may drive it) or inside a dialog belong there.
+const KEEP = 'input, textarea, select, button, a[href], summary, [role="button"], [role="link"], [role="menuitem"], '
+  + '[role="tab"], [role="option"], [role="checkbox"], [role="slider"], [contenteditable], [contenteditable] *, '
+  + '[role="dialog"] *, [aria-modal="true"] *';
 function isEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  return target.matches('input, textarea, select, [contenteditable], [contenteditable] *');
+  return target.matches(KEEP);
 }
 
 export class TerminalShell {
@@ -36,7 +40,7 @@ export class TerminalShell {
   private timer: ReturnType<typeof setInterval> | null = null;
 
   private readonly onKeydown = (e: KeyboardEvent) => {
-    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    if (e.defaultPrevented || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === ' ') return;
     if (isEditable(e.target)) return;
     e.preventDefault();
     this.input.focus();

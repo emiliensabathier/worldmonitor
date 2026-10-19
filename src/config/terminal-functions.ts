@@ -80,7 +80,15 @@ export function prepareTerminalDesk(
   initial?: FunctionCode,
 ): TabsState | null {
   const codes = TERMINAL_FUNCTIONS.map((f) => f.code);
-  if (stored && stored.tabs.length === codes.length && stored.tabs.every((t, i) => t.deskKey === codes[i])) {
+  // A stored desk is current only if each function still enables exactly its own panels (a composition
+  // changed since it was stored, or a hand-edited tab, rebuilds it).
+  const current = (t: PanelTab, i: number) => {
+    if (t.deskKey !== codes[i]) return false;
+    const want = new Set(TERMINAL_FUNCTIONS[i]!.mobile.filter((k) => k in base));
+    const enabled = Object.entries(t.panelSettings).filter(([, c]) => c.enabled).map(([k]) => k);
+    return enabled.length === want.size && enabled.every((k) => want.has(k));
+  };
+  if (stored && stored.tabs.length === codes.length && stored.tabs.every(current)) {
     const target = initial ? stored.tabs.find((t) => t.deskKey === initial) : undefined;
     if (!target || target.id === stored.activeTabId) return null;
     return { ...stored, activeTabId: target.id };

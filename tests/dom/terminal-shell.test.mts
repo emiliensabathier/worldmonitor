@@ -60,6 +60,21 @@ describe('TerminalShell', () => {
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
     expect(input().value).toBe('w');
   });
+  it('never steals Space, keys aimed at buttons or links, or anything typed inside a dialog', () => {
+    const key = shell.getElement().querySelector<HTMLButtonElement>('.bb-key[data-fn="GOVT"]')!;
+    key.focus();
+    const space = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+    key.dispatchEvent(space);
+    expect(space.defaultPrevented).toBe(false);
+    key.dispatchEvent(new KeyboardEvent('keydown', { key: 'g', bubbles: true }));
+    const dialog = document.createElement('div'); dialog.setAttribute('role', 'dialog');
+    const inner = document.createElement('div'); dialog.append(inner); document.body.append(dialog);
+    inner.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', bubbles: true }));
+    expect(input().value).toBe('');
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    expect(input().value).toBe('');
+  });
+
   it('Escape clears the line and closes the help', () => {
     submit('?');
     input().value = 'ab';
