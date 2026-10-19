@@ -279,6 +279,8 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
       // Sabathier (finance) build: inline the palette so the first paint never shows upstream colours
       // while bloomberg-theme.css loads asynchronously (the CSP already allows inline styles).
       if (activeVariant === 'finance') {
+        // Always-dark Terminal: paint the browser chrome black from the first byte.
+        result = result.replace(/<meta name="theme-color" content=".*?" \/>/, '<meta name="theme-color" content="#000000" />');
         const critical = criticalSabathierCss(
           readFileSync(resolve(__dirname, 'src/styles/sabathier-tokens.css'), 'utf8'),
           readFileSync(resolve(__dirname, 'src/styles/bloomberg-theme.css'), 'utf8'),

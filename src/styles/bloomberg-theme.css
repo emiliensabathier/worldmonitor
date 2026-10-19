@@ -37,8 +37,8 @@
   --text-secondary: var(--bb-value);
   --text-dim: var(--bb-dim);
   --text-muted: var(--bb-dim);
-  --text-faint: #6a6a6a;
-  --text-ghost: #555555;
+  --text-faint: #8a8a8a;
+  --text-ghost: #7a7a7a;
   --accent: var(--bb-amber);
   --input-bg: var(--bb-input);
   --panel-bg: var(--bb-bg);
@@ -314,7 +314,7 @@
 [data-variant="finance"] :is(.panel, .panel *, .header *, .dashboard-tab, input, select, button):not(.es-nav *) {
   border-radius: 0;
 }
-[data-variant="finance"] :is(.status-dot, .panel-severity-dot, .live-dot, [class*="-dot"]) {
+[data-variant="finance"] :is(.status-dot, .panel-severity-dot, .live-dot, .legend-dot, .bb-live-dot, .insight-sentiment-dot, .sector-dot, .wc-dot, .cp-chip-dot, .risk-source-dot) {
   border-radius: 50%;
 }
 
@@ -408,10 +408,11 @@
 }
 :root[data-variant="finance"].bb-shell .es-syn-group { display: inline-flex; gap: 18px; padding-right: 18px; }
 :root[data-variant="finance"].bb-shell .es-syn-item { min-height: 0; padding: 0; }
-:root[data-variant="finance"].bb-shell .es-syn:hover .es-syn-track { animation-play-state: paused; }
+:root[data-variant="finance"].bb-shell .es-syn:is(:hover, :focus-within) .es-syn-track { animation-play-state: paused; }
 @keyframes bb-tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) {
   :root[data-variant="finance"].bb-shell .es-syn-track { animation: none; }
+  :root[data-variant="finance"].bb-shell .es-syn-group[aria-hidden="true"] { display: none; }
   :root[data-variant="finance"].bb-shell .es-syn-figures { overflow-x: auto; scrollbar-width: none; }
 }
 
@@ -546,3 +547,30 @@
   :root[data-variant="finance"].bb-shell .cached-mode-banner { bottom: env(safe-area-inset-bottom, 0px); }
   :root[data-variant="finance"].bb-shell .site-footer.es-foot .es-foot-inner { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 }
+
+/* ---------- Finishing: charts, map, unavailable data ---------- */
+/* Yield curve: the US curve in amber, the EU curve in white (SVG presentation attributes yield to CSS). */
+[data-variant="finance"] [data-panel="yield-curve"] :is(polyline, line, circle)[stroke="#3498db"] { stroke: var(--bb-amber); }
+[data-variant="finance"] [data-panel="yield-curve"] circle[fill="#3498db"] { fill: var(--bb-amber); }
+[data-variant="finance"] [data-panel="yield-curve"] :is(polyline, line, circle)[stroke="#2ecc71"] { stroke: var(--bb-value); }
+[data-variant="finance"] [data-panel="yield-curve"] circle[fill="#2ecc71"] { fill: var(--bb-value); }
+/* Map in the shell: fixed layers, no layer boxes or time range; a compact legend. */
+:root[data-variant="finance"].bb-shell :is(.layer-toggles, .time-slider) { display: none; }
+:root[data-variant="finance"].bb-shell .map-legend {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, .8);
+  border: 1px solid var(--bb-rule);
+}
+/* Unavailable data: one grey N/A line instead of the radar block. */
+[data-variant="finance"] .panel-error-state {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  min-height: 0;
+}
+[data-variant="finance"] .panel-error-radar { display: none; }
+[data-variant="finance"] .panel-error-msg { color: var(--bb-dim); font-size: 11px; }
+[data-variant="finance"] .panel-error-msg::before { content: "N/A — "; color: var(--bb-dim); }

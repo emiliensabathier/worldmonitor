@@ -17,3 +17,8 @@ test('the finance build injects it into index.html', () => {
   const vite = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
   assert.match(vite, /data-sabathier-critical/);
 });
+
+test('the finance build paints the browser chrome black before JS runs', () => {
+  const vite = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
+  assert.match(vite, /activeVariant === 'finance'[\s\S]{0,400}theme-color" content="#000000"/);
+});
