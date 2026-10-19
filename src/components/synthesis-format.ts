@@ -1,5 +1,5 @@
 // Pure formatting for the Sabathier synthesis band (no DOM, no fetch).
-import type { DeskKey } from '@/config/sabathier-desk';
+import type { FunctionCode } from '@/config/terminal-functions';
 
 export interface SynthesisData {
   quotes: Record<string, { price: number | null; change: number | null }>;
@@ -11,7 +11,7 @@ export interface SynthesisData {
   asOf: number | null;
 }
 
-export interface SynthesisItem { label: string; value: string; change: string; dir: 'up' | 'down' | ''; desk: DeskKey }
+export interface SynthesisItem { label: string; value: string; change: string; dir: 'up' | 'down' | ''; desk: FunctionCode }
 
 const LOCALE = (lang: string) => (lang.toLowerCase().startsWith('fr') ? 'fr-FR' : 'en-GB');
 const fmt = (lang: string, n: number, digits: number) =>
@@ -21,7 +21,7 @@ const signed = (lang: string, n: number, digits: number, unit: string) =>
 const dirOf = (n: number): SynthesisItem['dir'] => (n > 0 ? 'up' : n < 0 ? 'down' : '');
 const ok = (n: number | null | undefined): n is number => typeof n === 'number' && Number.isFinite(n);
 
-function pct(lang: string, label: string, desk: DeskKey, q: { price: number | null; change: number | null } | undefined, digits: number, prefix = ''): SynthesisItem | null {
+function pct(lang: string, label: string, desk: FunctionCode, q: { price: number | null; change: number | null } | undefined, digits: number, prefix = ''): SynthesisItem | null {
   if (!q || !ok(q.price)) return null;
   const c = ok(q.change) && q.change !== 0 ? q.change : null;
   return { label, value: prefix + fmt(lang, q.price, digits), change: c === null ? '' : signed(lang, c, 2, '%'), dir: c === null ? '' : dirOf(c), desk };
@@ -34,22 +34,22 @@ export function buildSynthesisItems(d: SynthesisData, lang: string): SynthesisIt
   const tnx = d.quotes['^TNX'];
   if (tnx && ok(tnx.price)) {
     const move = ok(tnx.change) ? Math.round((tnx.price - tnx.price / (1 + tnx.change / 100)) * 100) : 0;
-    out.push({ label: 'US 10Y', value: fmt(lang, tnx.price, 2) + '%', change: move === 0 ? '' : signed(lang, move, 0, bp), dir: dirOf(move), desk: 'rates-fx' });
+    out.push({ label: 'US 10Y', value: fmt(lang, tnx.price, 2) + '%', change: move === 0 ? '' : signed(lang, move, 0, bp), dir: dirOf(move), desk: 'GOVT' });
   }
   if (ok(d.us2y) && ok(d.us10y)) {
-    out.push({ label: '2s10s', value: signed(lang, Math.round((d.us10y - d.us2y) * 100), 0, bp), change: '', dir: '', desk: 'rates-fx' });
+    out.push({ label: '2s10s', value: signed(lang, Math.round((d.us10y - d.us2y) * 100), 0, bp), change: '', dir: '', desk: 'GOVT' });
   }
-  if (ok(d.eu10y)) out.push({ label: 'EUR 10Y AAA', value: fmt(lang, d.eu10y, 2) + '%', change: '', dir: '', desk: 'rates-fx' });
-  out.push(pct(lang, 'S&P 500', 'equities', d.quotes['^GSPC'], 0));
-  out.push(pct(lang, 'CAC 40', 'equities', d.quotes['^FCHI'], 0));
-  out.push(pct(lang, 'VIX', 'equities', d.quotes['^VIX'], 2));
+  if (ok(d.eu10y)) out.push({ label: 'EUR 10Y AAA', value: fmt(lang, d.eu10y, 2) + '%', change: '', dir: '', desk: 'GOVT' });
+  out.push(pct(lang, 'S&P 500', 'WEI', d.quotes['^GSPC'], 0));
+  out.push(pct(lang, 'CAC 40', 'WEI', d.quotes['^FCHI'], 0));
+  out.push(pct(lang, 'VIX', 'WEI', d.quotes['^VIX'], 2));
   if (d.eurusd && ok(d.eurusd.rate)) {
     const base = d.eurusd.rate - d.eurusd.change1d;
     const c = ok(d.eurusd.change1d) && d.eurusd.change1d !== 0 && base > 0 ? (d.eurusd.change1d / base) * 100 : null;
-    out.push({ label: 'EUR/USD', value: fmt(lang, d.eurusd.rate, 4), change: c === null ? '' : signed(lang, c, 2, '%'), dir: c === null ? '' : dirOf(c), desk: 'rates-fx' });
+    out.push({ label: 'EUR/USD', value: fmt(lang, d.eurusd.rate, 4), change: c === null ? '' : signed(lang, c, 2, '%'), dir: c === null ? '' : dirOf(c), desk: 'FX' });
   }
-  out.push(pct(lang, 'Brent', 'commodities', d.quotes['BZ=F'], 2, '$'));
-  out.push(pct(lang, fr ? 'Or' : 'Gold', 'commodities', d.quotes['GC=F'], 0, '$'));
+  out.push(pct(lang, 'Brent', 'CMDTY', d.quotes['BZ=F'], 2, '$'));
+  out.push(pct(lang, fr ? 'Or' : 'Gold', 'CMDTY', d.quotes['GC=F'], 0, '$'));
   return out.filter((x): x is SynthesisItem => x !== null);
 }
 

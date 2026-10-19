@@ -25,7 +25,7 @@ describe('SynthesisBar', () => {
     const bar = new SynthesisBar({ load: async () => data, lang: 'en', onSelectDesk });
     await bar.refresh();
     bar.getElement().querySelector<HTMLButtonElement>('button.es-syn-item:last-of-type')!.click();
-    expect(onSelectDesk).toHaveBeenCalledWith('commodities');
+    expect(onSelectDesk).toHaveBeenCalledWith('CMDTY');
   });
 
   it('keeps the previous content when a refresh fails, and hides when there is nothing', async () => {

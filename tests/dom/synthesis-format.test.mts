@@ -14,15 +14,15 @@ const full: SynthesisData = {
 describe('buildSynthesisItems', () => {
   it('renders the nine figures in order, with desks and units (English)', () => {
     expect(buildSynthesisItems(full, 'en')).toEqual([
-      { label: 'US 10Y', value: '4.20%', change: '−3 bp', dir: 'down', desk: 'rates-fx' },
-      { label: '2s10s', value: '+35 bp', change: '', dir: '', desk: 'rates-fx' },
-      { label: 'EUR 10Y AAA', value: '3.39%', change: '', dir: '', desk: 'rates-fx' },
-      { label: 'S&P 500', value: '7,659', change: '−1.09%', dir: 'down', desk: 'equities' },
-      { label: 'CAC 40', value: '8,124', change: '+0.40%', dir: 'up', desk: 'equities' },
-      { label: 'VIX', value: '19.99', change: '+21.45%', dir: 'up', desk: 'equities' },
-      { label: 'EUR/USD', value: '1.1253', change: '+0.40%', dir: 'up', desk: 'rates-fx' },
-      { label: 'Brent', value: '$109.86', change: '', dir: '', desk: 'commodities' },
-      { label: 'Gold', value: '$4,181', change: '+0.52%', dir: 'up', desk: 'commodities' },
+      { label: 'US 10Y', value: '4.20%', change: '−3 bp', dir: 'down', desk: 'GOVT' },
+      { label: '2s10s', value: '+35 bp', change: '', dir: '', desk: 'GOVT' },
+      { label: 'EUR 10Y AAA', value: '3.39%', change: '', dir: '', desk: 'GOVT' },
+      { label: 'S&P 500', value: '7,659', change: '−1.09%', dir: 'down', desk: 'WEI' },
+      { label: 'CAC 40', value: '8,124', change: '+0.40%', dir: 'up', desk: 'WEI' },
+      { label: 'VIX', value: '19.99', change: '+21.45%', dir: 'up', desk: 'WEI' },
+      { label: 'EUR/USD', value: '1.1253', change: '+0.40%', dir: 'up', desk: 'FX' },
+      { label: 'Brent', value: '$109.86', change: '', dir: '', desk: 'CMDTY' },
+      { label: 'Gold', value: '$4,181', change: '+0.52%', dir: 'up', desk: 'CMDTY' },
     ]);
   });
 

@@ -1,5 +1,5 @@
 // Sabathier synthesis band: nine key figures and a two-sentence brief above the desk tabs.
-import type { DeskKey } from '@/config/sabathier-desk';
+import type { FunctionCode } from '@/config/terminal-functions';
 import { buildSynthesisItems, firstSentences, formatSynthesisStamp, type SynthesisData } from '@/components/synthesis-format';
 
 export class SynthesisBar {
@@ -11,7 +11,7 @@ export class SynthesisBar {
   };
   private intervalMs = 5 * 60_000;
 
-  constructor(private readonly opts: { load: () => Promise<SynthesisData>; lang: string; onSelectDesk: (k: DeskKey) => void }) {
+  constructor(private readonly opts: { load: () => Promise<SynthesisData>; lang: string; onSelectDesk: (k: FunctionCode) => void }) {
     this.el = document.createElement('section');
     this.el.className = 'es-syn';
     this.el.setAttribute('aria-label', opts.lang.startsWith('fr') ? 'Synthèse du jour' : 'Daily synthesis');
