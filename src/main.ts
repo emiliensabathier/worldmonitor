@@ -27,8 +27,8 @@ if (SITE_VARIANT === 'happy') {
 }
 
 if (SITE_VARIANT === 'finance') {
-  // Sabathier theme for the emiliensabathier.fr deployment, loaded like happy-theme.css.
-  void loadVariantThemeStylesheet('finance', () => import('./styles/sabathier-theme.css'));
+  // Bloomberg-style theme for the emiliensabathier.fr deployment, loaded like happy-theme.css.
+  void loadVariantThemeStylesheet('finance', () => import('./styles/bloomberg-theme.css'));
 }
 
 // Activate the deferred dashboard app stylesheet. The build

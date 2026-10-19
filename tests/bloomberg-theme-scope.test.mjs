@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const css = readFileSync(new URL('../src/styles/sabathier-theme.css', import.meta.url), 'utf8')
+const css = readFileSync(new URL('../src/styles/bloomberg-theme.css', import.meta.url), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '');
 const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 
@@ -22,7 +22,7 @@ function splitList(sel) {
 }
 
 test('every rule is scoped to the finance variant', () => {
-  const selectors = [...css.replace(/@import[^;]+;/g, '').replace(/@media[^{]+\{/g, '').matchAll(/([^{}@]+)\{/g)].map((m) => m[1].trim()).filter(Boolean);
+  const selectors = [...css.replace(/@import[^;]+;/g, '').replace(/@font-face\s*\{[^}]*\}/g, '').replace(/@media[^{]+\{/g, '').matchAll(/([^{}@]+)\{/g)].map((m) => m[1].trim()).filter(Boolean);
   assert.ok(selectors.length > 10);
   for (const sel of selectors) {
     for (const part of splitList(sel)) {
@@ -43,7 +43,7 @@ test('severity colours are left alone (only --semantic-positive follows --up, as
 });
 
 test('main.ts loads the theme for the finance variant only', () => {
-  assert.match(main, /SITE_VARIANT === 'finance'[\s\S]{0,200}loadVariantThemeStylesheet\('finance', \(\) => import\('\.\/styles\/sabathier-theme\.css'\)\)/);
+  assert.match(main, /SITE_VARIANT === 'finance'[\s\S]{0,200}loadVariantThemeStylesheet\('finance', \(\) => import\('\.\/styles\/bloomberg-theme\.css'\)\)/);
 });
 
 test('the active-state restyle only targets controls, never overlays or markers that use .active for "shown"', () => {
@@ -62,15 +62,13 @@ test('on mobile the footer collapses like upstream (only the status container st
   assert.match(css, /@media \(max-width: 768px\)\s*\{[^@]*\[data-variant="finance"\] \.site-footer\.es-foot > :not\(\.status-panel-container\)\s*\{\s*display:\s*none;/);
 });
 
-test('the 2D map (drawn from --map-* variables) gets the paper palette, grid hidden in the water colour', () => {
-  const light = css.match(/:root\[data-variant="finance"\]\s*\{([^}]*)\}/)[1];
-  const dark = css.match(/:root\[data-variant="finance"\]\[data-theme="dark"\]\s*\{([^}]*)\}/)[1];
-  for (const [block, bg, land] of [[light, '#e3e9f3', '#fbfaf6'], [dark, '#0f1420', '#1a1c21']]) {
-    assert.match(block, new RegExp(`--map-bg:\\s*${bg};`));
-    assert.match(block, new RegExp(`--map-grid:\\s*${bg};`));
-    assert.match(block, new RegExp(`--map-country:\\s*${land};`));
-    assert.match(block, /--map-stroke:\s*#[0-9a-f]{6};/);
-  }
+test('the 2D map (drawn from --map-* variables) is black with near-black land, grid hidden in the water colour', () => {
+  const block = css.match(/:root\[data-variant="finance"\]\s*\{([^}]*)\}/)[1];
+  assert.match(block, /--map-bg:\s*#000000;/);
+  assert.match(block, /--map-grid:\s*#000000;/);
+  assert.match(block, /--map-country:\s*#141414;/);
+  assert.match(block, /--map-stroke:\s*#5a3a10;/);
+  assert.doesNotMatch(css, /\[data-theme="dark"\]/, 'one palette only: the Terminal is always dark');
 });
 
 test('no space is reserved for the upstream Pro banner (the fork never shows it)', () => {
@@ -79,8 +77,8 @@ test('no space is reserved for the upstream Pro banner (the fork never shows it)
 });
 
 test('suggested Mission button and live data badge drop their hard-coded greens', () => {
-  assert.match(css, /\[data-variant="finance"\] \.mission-preset-button--suggested\s*\{\s*border-color:\s*var\(--pen\);/);
-  assert.match(css, /\[data-variant="finance"\] \.panel-data-badge\.live\s*\{[^}]*border-color:\s*var\(--rule\);[^}]*background:\s*transparent;/);
+  assert.match(css, /\[data-variant="finance"\] \.mission-preset-button--suggested\s*\{\s*border-color:\s*var\(--bb-amber\);/);
+  assert.match(css, /\[data-variant="finance"\] \.panel-data-badge\.live\s*\{[^}]*border-color:\s*var\(--bb-rule\);[^}]*background:\s*transparent;/);
 });
 
 test('on mobile the near-empty toolbar is hidden (only the live dot was left)', () => {
@@ -93,7 +91,7 @@ test('control radius only on toolbar and panel-header controls (round buttons an
 });
 
 test('panel titles keep the per-panel font scale', () => {
-  assert.match(css, /\.panel-title\s*\{[^}]*font-size:\s*calc\(1\.02rem \* var\(--wm-panel-effective-scale, 1\)\)/);
+  assert.match(css, /\.panel-title\s*\{[^}]*font-size:\s*calc\(\.75rem \* var\(--wm-panel-effective-scale, 1\)\)/);
 });
 
 test('RTL and CJK font stacks survive (only the base font is replaced)', () => {
@@ -101,8 +99,8 @@ test('RTL and CJK font stacks survive (only the base font is replaced)', () => {
   assert.match(css, /\[data-variant="finance"\] body\s*\{[^}]*font-family:\s*var\(--font-body\)/);
 });
 
-test('panel flash halo and small capital labels use the site palette', () => {
-  assert.match(css, /\.panel\.flash-new::after\s*\{[^}]*box-shadow:[^;]*var\(--pen\)|\.panel\.flash-new::after\s*\{[^}]*box-shadow:\s*0 0 0 2px var\(--pen-wash\)/);
+test('panel flash halo and small capital labels use the Bloomberg palette', () => {
+  assert.match(css, /\.panel\.flash-new::after\s*\{[^}]*box-shadow:[^;]*var\(--bb-amber\)/);
   assert.match(css, /:is\(\.time-slider-label, \.insights-section-title, \.live-media-shell-status\)\s*\{[^}]*letter-spacing:\s*\.04em/);
 });
 
@@ -113,4 +111,12 @@ test('synthesis figures: compact touch target and visible keyboard focus', () =>
 
 test('the synthesis time stamp never wraps (it set the row height on phones)', () => {
   assert.match(css, /\.es-syn-stamp\s*\{[^}]*white-space:\s*nowrap/);
+});
+
+test('Bloomberg palette and mono font', () => {
+  for (const [v, val] of [['--bb-bg', '#000000'], ['--bb-amber', '#fb8b1e'], ['--bb-value', '#ffffff'], ['--bb-up', '#4af626'], ['--bb-down', '#ff3b3b'], ['--bb-band', '#1c3d7a'], ['--bb-rule', '#333333']]) {
+    assert.match(css, new RegExp(`${v}:\\s*${val};`), v);
+  }
+  assert.match(css, /@font-face\s*\{[^}]*IBM Plex Mono[^}]*ibm-plex-mono-latin-400-normal\.woff2/);
+  assert.match(css, /--font-mono:\s*var\(--bb-mono\)/);
 });

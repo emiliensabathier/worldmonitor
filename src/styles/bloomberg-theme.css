@@ -1,0 +1,288 @@
+@import './sabathier-tokens.css';
+
+/* Bloomberg-style theme of Sabathier Terminal (finance variant, emiliensabathier.fr): classic black and
+   amber, IBM Plex Mono, always dark (theme-manager forces data-theme="dark"). Maps World Monitor's
+   variables onto the --bb- palette and restyles the chrome. Unlayered, like happy-theme.css, so it wins
+   over the layered base. Severity colours are deliberately untouched. The site nav keeps the shared
+   tokens (their dark set) and its own sans font. */
+
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap;
+  src: url("/site-fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap;
+  src: url("/site-fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-display: swap;
+  src: url("/site-fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2"); }
+
+:root[data-variant="finance"] {
+  --bb-bg: #000000;
+  --bb-rule: #333333;
+  --bb-amber: #fb8b1e;
+  --bb-value: #ffffff;
+  --bb-dim: #8a8a8a;
+  --bb-up: #4af626;
+  --bb-down: #ff3b3b;
+  --bb-band: #1c3d7a;
+  --bb-key: #2a2a2a;
+  --bb-input: #1a1a1a;
+  --bb-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --bg: var(--bb-bg);
+  --bg-secondary: #0a0a0a;
+  --surface: var(--bb-bg);
+  --surface-hover: #111111;
+  --surface-active: #1a1a1a;
+  --border: var(--bb-rule);
+  --border-strong: #4a4a4a;
+  --border-subtle: #1f1f1f;
+  --text: var(--bb-amber);
+  --text-secondary: var(--bb-value);
+  --text-dim: var(--bb-dim);
+  --text-muted: var(--bb-dim);
+  --text-faint: #6a6a6a;
+  --text-ghost: #555555;
+  --accent: var(--bb-amber);
+  --input-bg: var(--bb-input);
+  --panel-bg: var(--bb-bg);
+  --panel-border: var(--bb-rule);
+  --scrollbar-thumb: #3a3a3a;
+  --scrollbar-thumb-hover: #5a5a5a;
+  --green: var(--bb-up);
+  --red: var(--bb-down);
+  --semantic-positive: var(--bb-up);
+  --status-live: var(--bb-up);
+  --font-body-base: var(--bb-mono);
+  --font-mono: var(--bb-mono);
+  /* 2D map, drawn from these variables: black water, near-black land, dim amber borders, grid hidden. */
+  --map-bg: #000000;
+  --map-grid: #000000;
+  --map-country: #141414;
+  --map-stroke: #5a3a10;
+}
+
+/* The fork never shows the upstream Pro banner: reserve no room for it. */
+:root[data-variant="finance"].wm-pro-banner-reserved .pro-banner-slot {
+  min-height: 0;
+}
+:root[data-variant="finance"].wm-pro-banner-reserved #app::before {
+  content: none;
+  display: none;
+}
+
+/* Base type: mono everywhere (through --font-body, so the RTL and CJK stacks survive), tabular figures. */
+[data-variant="finance"] body {
+  background: var(--bb-bg);
+  color: var(--bb-amber);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.33;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Site nav above the toolbar: the shared nav, on black, slim. */
+[data-variant="finance"] .es-nav { position: relative; z-index: 20; background: var(--bb-bg); border-bottom-color: var(--bb-rule); }
+[data-variant="finance"] .es-nav .es-nav-inner { padding-inline: 12px; padding-block: 4px; }
+
+/* Toolbar (former header). */
+[data-variant="finance"] .header {
+  background: var(--bb-bg);
+  border-bottom: 1px solid var(--bb-rule);
+  box-shadow: none;
+  min-height: 32px;
+}
+[data-variant="finance"] .header :is(.logo, .logo-mobile, .version, .beta-badge, .credit-link, .github-link, #embedLinkBtn, #tvModeBtn) {
+  display: none;
+}
+
+/* Panels: black, square, separated by 2px of rule colour; solid blue title band in capitals. */
+[data-variant="finance"] :is(.panels-grid, #mapBottomGrid) {
+  gap: 2px;
+  background: var(--bb-rule);
+}
+[data-variant="finance"] .panel {
+  background: var(--bb-bg);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-variant="finance"] .panel-header {
+  background: var(--bb-band);
+  border: 0;
+  min-height: 22px;
+  padding: 1px 6px;
+}
+[data-variant="finance"] .panel-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  line-height: 1.3;
+  font-size: calc(.75rem * var(--wm-panel-effective-scale, 1));
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  color: var(--bb-value);
+}
+[data-variant="finance"] .panel-content { color: var(--bb-amber); }
+[data-variant="finance"] .panel-header button {
+  color: var(--bb-value);
+  background: transparent;
+  border: 0;
+}
+[data-variant="finance"] :is(.market-price, .commodity-price, .stat-value, .indicator-value, .insight-stat-value, .cp-stat-value) {
+  color: var(--bb-value);
+}
+
+/* Controls: mono capitals, square, amber fill for the active state (never green). */
+[data-variant="finance"] :is(.header, .panel-header) :is(button, select, .copy-link-btn, .search-btn) {
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: normal;
+  border-radius: 0;
+}
+/* Controls only: elsewhere upstream uses .active for "shown" (modals, overlays, markers). */
+[data-variant="finance"] :is(button, [role="tab"], [role="option"], .layer-toggle, .mobile-tab):is(.active, [aria-pressed="true"], [aria-selected="true"], .mission-preset-button--active):not(.es-nav *) {
+  color: #000;
+  border-color: var(--bb-amber);
+  background-color: var(--bb-amber);
+  box-shadow: none;
+}
+[data-variant="finance"] .mission-preset-button--suggested {
+  border-color: var(--bb-amber);
+}
+[data-variant="finance"] .panel-data-badge.live {
+  color: var(--bb-up);
+  border-color: var(--bb-rule);
+  background: transparent;
+}
+[data-variant="finance"] :is(input, select, textarea):not(.es-nav *) {
+  background-color: var(--bb-input);
+  color: var(--bb-value);
+  border-color: var(--bb-rule);
+}
+
+/* Desk tabs (until the function keys replace them): grey keys, amber when active. */
+[data-variant="finance"] #panelTabsMount .dashboard-tab {
+  background: var(--bb-key);
+  color: var(--bb-amber);
+  border: 0;
+  border-radius: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+[data-variant="finance"] #panelTabsMount .dashboard-tab:is(.active, [aria-selected="true"]) {
+  background: var(--bb-amber);
+  color: #000;
+}
+
+/* Footer: the site's footer on black; the technical coverage line is hidden. */
+[data-variant="finance"] .site-footer.es-foot {
+  display: block;
+  background: var(--bb-bg);
+  border-top: 1px solid var(--bb-rule);
+  color: var(--bb-dim);
+  font-family: var(--font-body);
+}
+[data-variant="finance"] .site-footer.es-foot a { color: var(--bb-amber); }
+/* Visually hidden, but kept in the accessibility tree as upstream intends (#7267). */
+[data-variant="finance"] .site-footer .digest-coverage-row {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Mobile: collapse the footer like upstream does (the shared .es-foot rules are unlayered and
+   would otherwise bring it back under the fixed mobile tab bar). */
+@media (max-width: 768px) {
+  [data-variant="finance"] .header {
+    display: none;
+  }
+  [data-variant="finance"] .site-footer.es-foot {
+    padding: 0;
+    border-top: none;
+  }
+  [data-variant="finance"] .site-footer.es-foot > :not(.status-panel-container) {
+    display: none;
+  }
+}
+
+/* Synthesis band (above the desk tabs): amber labels, white figures. */
+[data-variant="finance"] .es-syn {
+  border-bottom: 1px solid var(--bb-rule);
+  background: #0a0a0a;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+[data-variant="finance"] .es-syn-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 16px;
+}
+[data-variant="finance"] .es-syn-item {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--bb-value);
+  cursor: pointer;
+  white-space: nowrap;
+  font: inherit;
+}
+[data-variant="finance"] .es-syn-item:hover .es-syn-k { text-decoration: underline; }
+[data-variant="finance"] .es-syn-k { color: var(--bb-amber); }
+[data-variant="finance"] .es-syn-c.up { color: var(--bb-up); }
+[data-variant="finance"] .es-syn-c.down { color: var(--bb-down); }
+[data-variant="finance"] .es-syn-stamp { margin-left: auto; color: var(--bb-dim); white-space: nowrap; flex-shrink: 0; }
+[data-variant="finance"] .es-syn-brief { margin: 2px 0 0; color: #dddddd; max-width: 140ch; }
+@media (max-width: 768px) {
+  [data-variant="finance"] .es-syn { padding: 4px 10px; font-size: 11px; }
+  [data-variant="finance"] .es-syn-figures { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  [data-variant="finance"] .es-syn-stamp { margin-left: 0; }
+  [data-variant="finance"] .es-syn-brief { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
+
+/* "Related study" row at the bottom of linked panels. */
+[data-variant="finance"] .es-lab-link {
+  margin: 0;
+  padding: 3px 6px;
+  border-top: 1px solid var(--bb-rule);
+  font-size: 11px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+}
+[data-variant="finance"] .es-lab-link a { color: var(--bb-amber); text-decoration: underline; }
+[data-variant="finance"] .es-lab-link a:hover { color: var(--bb-value); }
+
+/* Remaining upstream accents: the new-data panel flash and small capital labels. */
+[data-variant="finance"] .panel.flash-new::after {
+  box-shadow: 0 0 0 1px var(--bb-amber);
+}
+[data-variant="finance"] :is(.time-slider-label, .insights-section-title, .live-media-shell-status) {
+  font-size: .7rem;
+  letter-spacing: .04em;
+  color: var(--bb-dim);
+}
+
+/* Synthesis figures: upstream gives every mobile button a 44px minimum; keep a compact 32px target. */
+[data-variant="finance"] .es-syn-item {
+  min-height: 32px;
+  padding: 4px 2px;
+}
+[data-variant="finance"] .es-syn-item:focus-visible {
+  outline: 2px solid var(--bb-amber);
+  outline-offset: 2px;
+}
+
+/* Square corners everywhere in the Terminal; status dots and markers stay round. */
+[data-variant="finance"] :is(.panel, .panel *, .header *, .dashboard-tab, input, select, button):not(.es-nav *) {
+  border-radius: 0;
+}
+[data-variant="finance"] :is(.status-dot, .panel-severity-dot, .live-dot, [class*="-dot"]) {
+  border-radius: 50%;
+}
+
+/* Upstream Pro-only surfaces have no meaning on this self-hosted desk. */
+[data-variant="finance"] :is(#us-tab-api-keys, #us-tab-embeds, #us-tab-mcp-clients, .framework-settings-btn--locked, .panel-pro-badge) {
+  display: none;
+}

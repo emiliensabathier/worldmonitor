@@ -1,5 +1,5 @@
 // Critical CSS for the Sabathier (finance) build: the colour tokens and the variable mapping, inlined
-// in index.html so the first paint already uses the site palette while sabathier-theme.css loads
+// in index.html so the first paint already uses the site palette while bloomberg-theme.css loads
 // asynchronously. Fonts, chrome and component rules stay in the stylesheet.
 function blocks(css, startsWith) {
   const out = [];
@@ -29,7 +29,7 @@ export function criticalSabathierCss(tokensCss, themeCss) {
     ...blocks(tokens, ':root[data-theme="dark"] {'),
     ...blocks(theme, ':root[data-variant="finance"] {'),
     ...blocks(theme, ':root[data-variant="finance"][data-theme="dark"] {'),
-    '[data-variant="finance"] body{background:var(--paper);color:var(--ink)}',
+    '[data-variant="finance"] body{background:#000;color:#fb8b1e}',
   ];
   return picked.join('\n').replace(/\n\s+/g, '\n').replace(/\s*\n\s*/g, '\n');
 }

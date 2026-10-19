@@ -277,11 +277,11 @@ function htmlVariantPlugin(activeMeta: VariantMeta, activeVariant: string, isDes
       result = bakeVariantIntoPrepaint(result, activeVariant);
 
       // Sabathier (finance) build: inline the palette so the first paint never shows upstream colours
-      // while sabathier-theme.css loads asynchronously (the CSP already allows inline styles).
+      // while bloomberg-theme.css loads asynchronously (the CSP already allows inline styles).
       if (activeVariant === 'finance') {
         const critical = criticalSabathierCss(
           readFileSync(resolve(__dirname, 'src/styles/sabathier-tokens.css'), 'utf8'),
-          readFileSync(resolve(__dirname, 'src/styles/sabathier-theme.css'), 'utf8'),
+          readFileSync(resolve(__dirname, 'src/styles/bloomberg-theme.css'), 'utf8'),
         );
         result = result.replace('</head>', `<style data-sabathier-critical>${critical}</style>\n</head>`);
         // The deployment's own identity in place of upstream's product metadata and SEO copy.
