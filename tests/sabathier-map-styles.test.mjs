@@ -31,18 +31,22 @@ test('DeckGLMap picks the Sabathier styles for the finance variant', () => {
   assert.equal(src.match(/\? HAPPY_LIGHT_STYLE : HAPPY_DARK_STYLE/g)?.length, 1, 'style choice must go through variantBasemapStyle()');
 });
 
-test('city dots use the label colour, and the dark halo matches the land', () => {
+test('city dots use the label colour, and the dark halo is black', () => {
   for (const theme of ['light', 'dark']) {
     const s = read(`sabathier-${theme}.json`);
     for (const l of s.layers.filter((x) => x.id.startsWith('place_') && x.paint?.['icon-color'] !== undefined)) {
       assert.equal(l.paint['icon-color'], PALETTES[theme].label, l.id);
     }
   }
-  assert.equal(PALETTES.dark.halo, PALETTES.dark.land);
+  assert.equal(PALETTES.dark.halo, PALETTES.dark.water); // labels sit on black water and near-black land
 });
 
 test('variant basemaps: hover paint follows the page theme, and a fallback map stays on its fallback style', () => {
   const src = readFileSync(new URL('../src/components/DeckGLMap.ts', import.meta.url), 'utf8');
   assert.match(src, /const paintTheme = usesVariantBasemap \? getCurrentTheme\(\) : \(isLightMapTheme\(mapTheme\)/);
   assert.match(src, /this\.usedFallbackStyle\s*\?\s*\(getCurrentTheme\(\) === 'light' \? FALLBACK_LIGHT_STYLE : FALLBACK_DARK_STYLE\)/);
+});
+
+test('dark: Bloomberg map, black water, near-black land, dim amber borders', () => {
+  assert.deepEqual(PALETTES.dark, { land: '#141414', water: '#000000', border: '#5a3a10', road: '#1f1f1f', label: '#8a6a3a', halo: '#000000' });
 });

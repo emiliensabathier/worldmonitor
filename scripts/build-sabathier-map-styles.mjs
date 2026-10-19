@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 export const PALETTES = {
   light: { land: '#fbfaf6', water: '#e3e9f3', border: '#c9cdd3', road: '#eceef0', label: '#5e6570', halo: '#fbfaf6' },
-  dark: { land: '#1a1c21', water: '#0f1420', border: '#3a3e46', road: '#24272d', label: '#9aa1ab', halo: '#1a1c21' },
+  dark: { land: '#141414', water: '#000000', border: '#5a3a10', road: '#1f1f1f', label: '#8a6a3a', halo: '#000000' },
 };
 
 const HIDE = /^(building|housenumber|poi_|aeroway|boundary_(county|state)|park_|landuse)/;
