@@ -96,4 +96,26 @@ describe('TerminalShell', () => {
     shell.setActive('LABS');
     expect(spy).toHaveBeenCalledWith({ inline: 'nearest', block: 'nearest' });
   });
+  it('announces unknown codes and ties the help list to the command line', () => {
+    submit('xyz');
+    const msg = shell.getElement().querySelector('.bb-help-msg')!;
+    expect(msg.getAttribute('role')).toBe('status');
+    expect(input().getAttribute('aria-expanded')).toBe('true');
+    expect(input().getAttribute('aria-controls')).toBe(shell.getElement().querySelector('.bb-help')!.id);
+    input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(input().getAttribute('aria-expanded')).toBe('false');
+  });
+  it('rewrites a lowercase or unknown address to its canonical code without a new history entry', () => {
+    const push = vi.spyOn(history, 'pushState');
+    history.replaceState(null, '', '/terminal/#govt');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    expect(location.hash).toBe('#GOVT');
+    expect(push).not.toHaveBeenCalled();
+  });
+  it('popstate and hashchange for the same navigation open the function once', () => {
+    history.replaceState(null, '', '/terminal/#FX');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    expect(opened.filter((c) => c === 'FX')).toHaveLength(1);
+  });
 });

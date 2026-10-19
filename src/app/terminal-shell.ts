@@ -40,6 +40,7 @@ export class TerminalShell {
   private readonly text: typeof TEXT.en;
   private readonly now: () => Date;
   private timer: ReturnType<typeof setInterval> | null = null;
+  private active: FunctionCode | null = null;
 
   private readonly onKeydown = (e: KeyboardEvent) => {
     if (e.defaultPrevented || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === ' ') return;
@@ -48,7 +49,12 @@ export class TerminalShell {
     this.input.focus();
     this.input.value += e.key;
   };
-  private readonly onLocation = () => this.open(functionFromHash(location.hash), false);
+  // Back/forward fire popstate and hashchange together: act once, and keep the address canonical (#GOVT).
+  private readonly onLocation = () => {
+    const code = functionFromHash(location.hash);
+    if (location.hash !== `#${code}`) history.replaceState(history.state, '', `#${code}`);
+    if (code !== this.active) this.open(code, false);
+  };
 
   constructor(private readonly opts: { lang: string; onOpen: (code: FunctionCode) => void; now?: () => Date }) {
     const lang = opts.lang.toLowerCase().startsWith('fr') ? 'fr' : 'en';
@@ -71,6 +77,8 @@ export class TerminalShell {
     this.input.spellcheck = false;
     this.input.placeholder = this.text.prompt;
     this.input.setAttribute('aria-label', this.text.prompt);
+    this.input.setAttribute('aria-controls', 'bb-help');
+    this.input.setAttribute('aria-expanded', 'false');
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { this.input.value = ''; this.hideHelp(); }
     });
@@ -87,9 +95,11 @@ export class TerminalShell {
 
     this.help = document.createElement('div');
     this.help.className = 'bb-help';
+    this.help.id = 'bb-help';
     this.help.hidden = true;
     this.helpMsg = document.createElement('p');
     this.helpMsg.className = 'bb-help-msg';
+    this.helpMsg.setAttribute('role', 'status');
     const list = document.createElement('div');
     list.className = 'bb-help-list';
     for (const fn of TERMINAL_FUNCTIONS) {
@@ -136,6 +146,7 @@ export class TerminalShell {
   }
 
   setActive(code: FunctionCode): void {
+    this.active = code;
     for (const [c, key] of this.keys) key.setAttribute('aria-pressed', String(c === code));
     // Phones scroll the key row: keep the active key in view.
     this.keys.get(code)?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' });
@@ -168,9 +179,13 @@ export class TerminalShell {
     this.helpMsg.textContent = cmd.kind === 'unknown' ? this.text.unknown + cmd.input : '';
     this.helpMsg.hidden = cmd.kind !== 'unknown';
     this.help.hidden = false;
+    this.input.setAttribute('aria-expanded', 'true');
   }
 
-  private hideHelp(): void { this.help.hidden = true; }
+  private hideHelp(): void {
+    this.help.hidden = true;
+    this.input.setAttribute('aria-expanded', 'false');
+  }
 
   private tick(): void {
     const d = this.now();
