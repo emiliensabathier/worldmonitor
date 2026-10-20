@@ -1229,7 +1229,6 @@ export class PanelLayoutManager implements AppModule {
         <div class="mobile-menu-divider"></div>
         <div class="mobile-menu-footer-links">
           ${SITE_VARIANT === 'finance' ? '' : DASHBOARD_REFERENCE_LINKS.map(({ label, path }) => `<a href="${path}" target="_blank" rel="noopener">${label}</a>`).join('')}
-          <a href="/labs/source.txt">Licence and source (AGPL-3.0)</a>
         </div>
         <div class="mobile-menu-version">v${__APP_VERSION__}</div>
       </nav>
@@ -1308,8 +1307,7 @@ export class PanelLayoutManager implements AppModule {
         <div class="es-foot-inner">
           <span class="bb-live"><span class="bb-live-dot" aria-hidden="true"></span>LIVE</span>
           <span class="bb-stamp"></span>
-          <span class="bb-owner">Emilien Sabathier &middot; Rouen</span>
-          <a href="/labs/source.txt">${getCurrentLanguage() === 'fr' ? 'Licence et source (AGPL-3.0)' : 'Licence and source (AGPL-3.0)'}</a>
+          <span class="bb-owner">Emilien Sabathier</span>
         </div>
       </footer>
     `, "legacy direct innerHTML migration"));
