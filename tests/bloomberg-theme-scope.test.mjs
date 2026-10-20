@@ -172,3 +172,9 @@ test('checkboxes keep their checked look: excluded from the dark field rule, amb
 test('no upstream product credit in the layer list (the AGPL notice lives on /labs/source.txt)', () => {
   assert.match(css, /\[data-variant="finance"\] \.map-author-badge\s*\{\s*display:\s*none;/);
 });
+
+test('phones scroll the page: html/body leave upstream overflow hidden, #app leaves its fixed absolute box', () => {
+  const mobile = css.match(/@media \(max-width: 768px\)[^{]*\{([\s\S]*?)\n\}/g).join('\n');
+  assert.match(mobile, /:root\[data-variant="finance"\]\.bb-shell,\s*:root\[data-variant="finance"\]\.bb-shell body\s*\{[^}]*height:\s*auto;[^}]*overflow-y:\s*auto/);
+  assert.match(mobile, /\.bb-shell #app\s*\{[^}]*position:\s*relative;[^}]*inset:\s*auto/);
+});

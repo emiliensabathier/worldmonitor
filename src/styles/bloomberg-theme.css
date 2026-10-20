@@ -519,7 +519,11 @@
     align-items: center;
   }
   :root[data-variant="finance"].bb-shell .bb-key small { display: none; }
-  :root[data-variant="finance"].bb-shell #app { display: block; height: auto; overflow: visible; }
+  /* The page scrolls here, not .main-content: undo upstream's fixed viewport (html/body overflow hidden at
+     100% height, #app absolute on inset 0), or nothing scrolls under a finger. */
+  :root[data-variant="finance"].bb-shell,
+  :root[data-variant="finance"].bb-shell body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  :root[data-variant="finance"].bb-shell #app { display: block; height: auto; overflow: visible; position: relative; inset: auto; min-height: 100dvh; }
   :root[data-variant="finance"].bb-shell #main.main-content[data-fn] {
     display: flex;
     flex-direction: column;
