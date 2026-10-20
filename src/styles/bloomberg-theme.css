@@ -150,7 +150,8 @@
   border-color: var(--bb-rule);
   background: transparent;
 }
-[data-variant="finance"] :is(input, select, textarea):not(.es-nav *) {
+/* Checkboxes and radios keep their own look (a dark background hid the checked state). */
+[data-variant="finance"] :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):not(.es-nav *) {
   background-color: var(--bb-input);
   color: var(--bb-value);
   border-color: var(--bb-rule);
@@ -630,3 +631,18 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Map layer list (3D and phone renderer): native amber checkboxes, the active layer's name in white. */
+[data-variant="finance"] .layer-toggles input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  accent-color: var(--bb-amber);
+  background: none;
+  width: 13px;
+  height: 13px;
+  margin: 0 6px 0 0;
+  flex: none;
+}
+[data-variant="finance"] .layer-toggle:has(input:checked) .toggle-label { color: var(--bb-value); }
+/* Upstream product credit in the layer list: the AGPL notice and upstream copyright live on /labs/source.txt. */
+[data-variant="finance"] .map-author-badge { display: none; }

@@ -162,3 +162,13 @@ test('remaining fixes: N/A line left-aligned, no tab-bar reserve on phones, roun
   assert.match(css, /@media \(max-width: 768px\), \(max-height: 520px\) and \(orientation: landscape\)/);
   assert.doesNotMatch(css, /#panelsGrid \{ display: contents !important; \}/);
 });
+
+test('checkboxes keep their checked look: excluded from the dark field rule, amber native box in the layer list', () => {
+  assert.match(css, /\[data-variant="finance"\] :is\(input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\), select, textarea\):not\(\.es-nav \*\)/);
+  assert.match(css, /\.layer-toggles input\[type="checkbox"\]\s*\{[^}]*appearance:\s*auto;[^}]*accent-color:\s*var\(--bb-amber\)/);
+  assert.match(css, /\.layer-toggle:has\(input:checked\) \.toggle-label\s*\{[^}]*color:\s*var\(--bb-value\)/);
+});
+
+test('no upstream product credit in the layer list (the AGPL notice lives on /labs/source.txt)', () => {
+  assert.match(css, /\[data-variant="finance"\] \.map-author-badge\s*\{\s*display:\s*none;/);
+});
