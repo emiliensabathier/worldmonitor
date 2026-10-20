@@ -52,6 +52,7 @@ import { attachLabLinks } from '@/app/lab-links';
 import { isFunctionCode, prepareTerminalDesk } from '@/config/terminal-functions';
 import { TerminalShell, functionFromHash } from '@/app/terminal-shell';
 import { TerminalGrid } from '@/app/terminal-grid';
+import { mountLayerButton } from '@/app/terminal-map-layers';
 import { SynthesisBar } from '@/components/SynthesisBar';
 import { getCurrentTheme } from '@/utils';
 import { trackCriticalBannerAction, trackCheckoutSuccess, trackCheckoutFailed, trackGateHit, trackMapViewChange, trackLayoutCustomized, replayPendingCheckoutSuccess, replayPendingProFunnelEvents, replayPendingConversionEvents, replayPendingMissionReturn } from '@/services/analytics';
@@ -1424,6 +1425,8 @@ export class PanelLayoutManager implements AppModule {
         },
       });
       if (main) grid = new TerminalGrid(main, { lang, onOpen: (code) => shell.open(code) });
+      const mapSection = document.getElementById('mapSection');
+      if (mapSection) mountLayerButton(mapSection, lang);
       mount.parentNode?.insertBefore(shell.getElement(), mount);
       const bar = new SynthesisBar({
         // Loaded on demand: keeps the market services out of the layout's static module graph.

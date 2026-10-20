@@ -558,8 +558,49 @@
 [data-variant="finance"] [data-panel="yield-curve"] circle[fill="#3498db"] { fill: var(--bb-amber); }
 [data-variant="finance"] [data-panel="yield-curve"] :is(polyline, line, circle)[stroke="#2ecc71"] { stroke: var(--bb-value); }
 [data-variant="finance"] [data-panel="yield-curve"] circle[fill="#2ecc71"] { fill: var(--bb-value); }
-/* Map in the shell: fixed layers, no layer boxes or time range; a compact legend. */
-:root[data-variant="finance"].bb-shell :is(.layer-toggles, .time-slider) { display: none; }
+/* Map in the shell: layer and time-range controls behind the LAYERS button (terminal-map-layers.ts), shown
+   as a compact amber-framed drop-down; a compact legend. */
+:root[data-variant="finance"].bb-shell #mapSection:not(.bb-layers-open) :is(.layer-toggles, .time-slider) { display: none; }
+:root[data-variant="finance"].bb-shell #mapSection { position: relative; }
+:root[data-variant="finance"].bb-shell #mapSection.bb-layers-open .layer-toggles {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 40;
+  flex-direction: column;
+  gap: 2px;
+  max-height: calc(100% - 8px);
+  max-width: min(320px, calc(100% - 8px));
+  overflow-y: auto;
+  padding: 6px;
+  background: #000;
+  border: 1px solid var(--bb-amber);
+  font-size: 11px;
+}
+:root[data-variant="finance"].bb-shell #mapSection.bb-layers-open .time-slider {
+  position: absolute;
+  top: auto;
+  left: auto;
+  bottom: 34px;
+  right: 4px;
+  width: auto;
+  z-index: 40;
+  background: #000;
+  border: 1px solid var(--bb-amber);
+}
+:root[data-variant="finance"].bb-shell .bb-layers-btn {
+  background: var(--bb-key);
+  color: var(--bb-amber);
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  padding: 1px 8px;
+  margin-right: 6px;
+  white-space: nowrap;
+  flex: none;
+  cursor: pointer;
+}
+:root[data-variant="finance"].bb-shell .bb-layers-btn[aria-expanded="true"] { background: var(--bb-amber); color: #000; }
 :root[data-variant="finance"].bb-shell .map-legend {
   font-size: 10px;
   padding: 2px 6px;

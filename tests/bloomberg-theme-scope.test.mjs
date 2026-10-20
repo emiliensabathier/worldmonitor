@@ -145,7 +145,7 @@ test('mobile shell: no upstream tab bar, stacked flex column, capped panel heigh
 test('finish: amber/white yield curve, no map layer boxes or time range in the shell, N/A error line, ticker pauses on focus', () => {
   assert.match(css, /\[data-panel="yield-curve"\] [^{]*\[stroke="#3498db"\][^{]*\{[^}]*stroke:\s*var\(--bb-amber\)/);
   assert.match(css, /\[stroke="#2ecc71"\][^{]*\{[^}]*stroke:\s*var\(--bb-value\)/);
-  assert.match(css, /\.bb-shell :is\(\.layer-toggles, \.time-slider\)\s*\{[^}]*display:\s*none/);
+  assert.match(css, /\.bb-shell #mapSection:not\(\.bb-layers-open\) :is\(\.layer-toggles, \.time-slider\)\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.panel-error-state\s*\{[^}]*flex-direction:\s*row/);
   assert.match(css, /\.panel-error-radar\s*\{[^}]*display:\s*none/);
   assert.match(css, /\.es-syn:is\(:hover, :focus-within\) \.es-syn-track\s*\{[^}]*animation-play-state:\s*paused/);
