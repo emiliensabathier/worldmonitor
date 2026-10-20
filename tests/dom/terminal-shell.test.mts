@@ -130,4 +130,22 @@ describe('TerminalShell', () => {
     window.dispatchEvent(new HashChangeEvent('hashchange'));
     expect(opened.filter((c) => c === 'FX')).toHaveLength(1);
   });
+
+  it('start() rewrites a lowercase address to the canonical code without a history entry', () => {
+    shell.destroy();
+    history.replaceState(null, '', '/terminal/#govt');
+    const push = vi.spyOn(history, 'pushState');
+    shell = new TerminalShell({ lang: 'fr', onOpen: (c) => opened.push(c) });
+    shell.start();
+    expect(location.hash).toBe('#GOVT');
+    expect(push).not.toHaveBeenCalled();
+  });
+  it('ignores navigation to other pages of the app (stock research overlay at /stocks/…)', () => {
+    shell.open('WEI');
+    const before = opened.length;
+    history.pushState(null, '', '/stocks/AAPL');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(opened).toHaveLength(before);
+    history.replaceState(null, '', '/terminal/#WEI');
+  });
 });

@@ -160,6 +160,24 @@ for (const theme of ['light', 'dark']) {
   }
   await ctx.close();
 }
+// Phone held sideways: stacked like a phone, not a cramped desktop grid.
+{
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  await page.goto(`${url}#TOP`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(12000);
+  await page.screenshot({ path: join(outdir, 'landscape-TOP.png') });
+  const r = await page.evaluate(() => ({
+    flow: getComputedStyle(document.getElementById('main')).flexDirection,
+    display: getComputedStyle(document.getElementById('main')).display,
+    hScroll: document.documentElement.scrollWidth > innerWidth + 1,
+  }));
+  const ok = r.display === 'flex' && r.flow === 'column' && !r.hScroll;
+  if (!ok) failed = true;
+  report.landscape = { ok, ...r };
+  console.log(`${ok ? 'ok  ' : 'FAIL'} landscape TOP: display=${r.display} flow=${r.flow} hScroll=${r.hScroll}`);
+  await ctx.close();
+}
 await browser.close();
 writeFileSync(join(outdir, 'report.json'), JSON.stringify(report, null, 2));
 process.exit(failed ? 1 : 0);

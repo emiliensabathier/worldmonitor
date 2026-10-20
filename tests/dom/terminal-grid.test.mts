@@ -67,7 +67,7 @@ describe('TerminalGrid', () => {
     expect(insights.style.order).toBe('1');
     expect(map.style.order).toBe('3');
     expect(insights.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('2');
-    expect(map.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('4');
+    expect(map.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('3'); // live-news is absent: no gap
     // Upstream mobile rules are layered !important (they beat unlayered sheets): only inline !important wins.
     const grid0 = main.querySelector<HTMLElement>('#panelsGrid')!;
     expect(grid0.style.getPropertyValue('display')).toBe('contents');
@@ -80,6 +80,25 @@ describe('TerminalGrid', () => {
     expect(grid0.style.getPropertyValue('display')).toBe('');
     expect(map.style.getPropertyValue('height')).toBe('');
     expect(insights.querySelector('.panel-title')!.getAttribute('data-bb-n')).toBe('3');
+    grid.destroy();
+  });
+
+  it('numbers only the panels on screen (no gap for a missing one)', () => {
+    const main = dom();
+    main.querySelector('[data-panel="markets"]')!.classList.add('hidden');
+    const grid = new TerminalGrid(main, { lang: 'en', onOpen: () => {} });
+    grid.apply('TOP');
+    expect(main.querySelector('#mapSection .panel-title')!.getAttribute('data-bb-n')).toBe('1');
+    expect(main.querySelector('[data-panel="insights"] .panel-title')!.getAttribute('data-bb-n')).toBe('2');
+    grid.destroy();
+  });
+  it('falls back to a plain layout when the function grid would keep holes', () => {
+    const main = dom();
+    main.querySelector('#mapSection')!.classList.add('hidden');
+    const grid = new TerminalGrid(main, { lang: 'en', onOpen: () => {} });
+    grid.apply('TOP'); // only markets and insights left: map, live-news and finance-labs missing
+    expect(main.style.gridTemplateAreas).toBe('"markets insights"');
+    expect(main.style.gridTemplateColumns).toBe('minmax(0, 1fr) minmax(0, 1fr)');
     grid.destroy();
   });
 });

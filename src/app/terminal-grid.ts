@@ -3,8 +3,11 @@
 // grid-area = their key. Panels mounted later (lazy/deferred) take their cell back through a
 // MutationObserver; absent ones hand their cells to a neighbour (collapseAreas).
 import {
-  collapseAreas, functionLabel, functionPanelKeys, getFunction, panelHome, type FunctionCode,
+  collapseAreas, fallbackAreas, functionLabel, functionPanelKeys, getFunction, panelHome, type FunctionCode,
 } from '@/config/terminal-functions';
+
+/** Same query as the stacked block of bloomberg-theme.css. */
+export const STACKED_QUERY = '(max-width: 768px), (max-height: 520px) and (orientation: landscape)';
 
 function tracks(spec: string | undefined, count: number): string {
   const sizes = spec ? spec.trim().split(/\s+/) : Array.from({ length: count }, () => '1fr');
@@ -23,7 +26,7 @@ export class TerminalGrid {
     private readonly opts: { lang: string; onOpen: (code: FunctionCode) => void; mobileQuery?: MediaQueryList },
   ) {
     // Phones stack the panels in the function's mobile order (CSS order); numbers follow what is on screen.
-    this.mobile = opts.mobileQuery ?? (typeof matchMedia === 'function' ? matchMedia('(max-width: 768px)') : null);
+    this.mobile = opts.mobileQuery ?? (typeof matchMedia === 'function' ? matchMedia(STACKED_QUERY) : null);
     this.mobile?.addEventListener('change', this.onWidth);
     // Only structural changes matter: grid children added/removed/shown/hidden, not panel content updates.
     this.observer = new MutationObserver((records) => {
@@ -70,9 +73,14 @@ export class TerminalGrid {
     const fn = getFunction(this.code!);
     const keys = functionPanelKeys(fn);
     const stacked = !!this.mobile?.matches;
-    const order: readonly string[] = stacked ? fn.mobile : keys;
     const items = this.items();
-    const areas = collapseAreas(fn.areas, new Set(keys.filter((k) => items.has(k))));
+    // Numbers count only the panels on screen, in the order they are read.
+    const order: readonly string[] = (stacked ? fn.mobile : keys).filter((k) => items.has(k));
+    const present = keys.filter((k) => items.has(k));
+    let areas = collapseAreas(fn.areas, new Set(present));
+    // Several missing panels can leave holes the neighbours cannot fill: use a plain layout instead.
+    const holes = areas.some((row) => row.split(/\s+/).includes('.'));
+    if (holes) areas = fallbackAreas(present);
     const template = areas.map((row) => `"${row}"`).join(' ');
 
     // Writing styles and links below mutates the observed subtree: pause the observer meanwhile.
@@ -80,8 +88,8 @@ export class TerminalGrid {
     this.main.dataset.fn = fn.code;
     this.main.style.gridTemplateAreas = template;
     // Tracks never grow with their content (minmax(0, …)): the screen is fixed, panels scroll inside.
-    this.main.style.gridTemplateColumns = tracks(fn.columns, areas[0]!.trim().split(/\s+/).length);
-    this.main.style.gridTemplateRows = tracks(fn.rows, areas.length);
+    this.main.style.gridTemplateColumns = tracks(holes ? undefined : fn.columns, areas[0]?.trim().split(/\s+/).length ?? 1);
+    this.main.style.gridTemplateRows = tracks(holes ? undefined : fn.rows, Math.max(1, areas.length));
     // Upstream's phone rules are !important inside @layer base, which beats any unlayered !important:
     // only inline !important wins (flatten #panelsGrid, 40vh map).
     const panelsGrid = this.main.querySelector<HTMLElement>('#panelsGrid');

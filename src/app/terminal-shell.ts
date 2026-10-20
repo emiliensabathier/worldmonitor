@@ -42,6 +42,7 @@ export class TerminalShell {
   private readonly now: () => Date;
   private timer: ReturnType<typeof setInterval> | null = null;
   private active: FunctionCode | null = null;
+  private path = '';
 
   private readonly onKeydown = (e: KeyboardEvent) => {
     if (e.defaultPrevented || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1 || e.key === ' ') return;
@@ -53,6 +54,8 @@ export class TerminalShell {
   // Back/forward fire popstate and hashchange together: act once, and keep the address canonical (#GOVT).
   private readonly onLocation = () => {
     // In-page anchors (the skip link's #main…) are not function addresses: leave them alone.
+    // Other pages of the app (the stock research overlay lives at /stocks/…) are not function addresses.
+    if (location.pathname !== this.path) return;
     const raw = location.hash.replace(/^#/, '').trim().toUpperCase();
     if (raw && !isFunctionCode(raw)) return;
     const code = functionFromHash(location.hash);
@@ -160,6 +163,9 @@ export class TerminalShell {
   }
 
   start(): void {
+    this.path = location.pathname;
+    const raw = location.hash.replace(/^#/, '').trim().toUpperCase();
+    if (raw && isFunctionCode(raw) && location.hash !== `#${raw}`) history.replaceState(history.state, '', `#${raw}`);
     document.addEventListener('keydown', this.onKeydown);
     window.addEventListener('popstate', this.onLocation);
     window.addEventListener('hashchange', this.onLocation);

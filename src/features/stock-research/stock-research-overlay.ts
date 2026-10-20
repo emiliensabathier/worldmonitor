@@ -104,7 +104,7 @@ export function navigateToStockResearch(symbol: string, stock?: MarketData): voi
   const url = stockResearchUrl(normalized);
   if (window.location.pathname !== url) {
     if (!isStockResearchLocation()) {
-      returnUrl = `${window.location.pathname}${window.location.search}`;
+      returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     }
     window.history.pushState(
       { ...(window.history.state as Record<string, unknown> | null ?? {}), stockResearch: normalized },
@@ -125,7 +125,7 @@ export async function openStockResearchOverlay(rawSymbol: string, stock?: Market
     popStateBound = true;
   }
   if (returnUrl === null && !isStockResearchLocation()) {
-    returnUrl = `${window.location.pathname}${window.location.search}`;
+    returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   }
 
   const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;

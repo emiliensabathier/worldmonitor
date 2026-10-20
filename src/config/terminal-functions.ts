@@ -165,3 +165,17 @@ export function collapseAreas(areas: readonly string[], present: ReadonlySet<str
   }
   return out();
 }
+
+/** Plain layout for what is left when the function grid would keep holes: rows of three, the last panel
+ *  stretching over the rest of its row. */
+export function fallbackAreas(keys: readonly string[]): string[] {
+  if (keys.length === 0) return [];
+  const cols = keys.length === 4 ? 2 : Math.min(3, keys.length);
+  const rows: string[] = [];
+  for (let i = 0; i < keys.length; i += cols) {
+    const row = keys.slice(i, i + cols);
+    while (row.length < cols) row.push(row[row.length - 1]!);
+    rows.push(row.join(' '));
+  }
+  return rows;
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { FINANCE_PANELS } from '@/config/panels';
 import {
   TERMINAL_FUNCTIONS, DEFAULT_FUNCTION, functionPanelKeys, panelHome, buildFunctionTabs, prepareTerminalDesk,
-  collapseAreas, isRectangular, isFunctionCode,
+  collapseAreas, isRectangular, isFunctionCode, fallbackAreas,
 } from '@/config/terminal-functions';
 
 const ids = () => { let i = 0; return () => `tab-${++i}-x`; };
@@ -88,4 +88,16 @@ describe('collapseAreas', () => {
     expect(collapseAreas(['y y c', 'b b c'], new Set(['b', 'c']))).toEqual(['b b c', 'b b c']);
     expect(collapseAreas(['a x', 'a x'], new Set(['a']))).toEqual(['a a', 'a a']);
   });
+
+describe('fallbackAreas', () => {
+  it('lays out what is left in rows of three, the last panel filling its row', () => {
+    expect(fallbackAreas(['a'])).toEqual(['a']);
+    expect(fallbackAreas(['a', 'b'])).toEqual(['a b']);
+    expect(fallbackAreas(['a', 'b', 'c'])).toEqual(['a b c']);
+    expect(fallbackAreas(['a', 'b', 'c', 'd'])).toEqual(['a b', 'c d']);
+    expect(fallbackAreas(['a', 'b', 'c', 'd', 'e'])).toEqual(['a b c', 'd e e']);
+    expect(fallbackAreas(['a', 'b', 'c', 'd', 'e', 'f', 'g'])).toEqual(['a b c', 'd e f', 'g g g']);
+    expect(fallbackAreas([])).toEqual([]);
+  });
+});
 });

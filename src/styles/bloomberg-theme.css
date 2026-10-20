@@ -314,7 +314,7 @@
 [data-variant="finance"] :is(.panel, .panel *, .header *, .dashboard-tab, input, select, button):not(.es-nav *) {
   border-radius: 0;
 }
-[data-variant="finance"] :is(.status-dot, .panel-severity-dot, .live-dot, .legend-dot, .bb-live-dot, .insight-sentiment-dot, .sector-dot, .wc-dot, .cp-chip-dot, .risk-source-dot) {
+[data-variant="finance"] :is(.status-dot, .panel-severity-dot, .live-dot, .legend-dot, .bb-live-dot, .insight-sentiment-dot, .sector-dot, .wc-dot, .cp-chip-dot, .risk-source-dot, .panel-radar-dot, .live-media-shell-dot) {
   border-radius: 50%;
 }
 
@@ -446,7 +446,8 @@
 :root[data-variant="finance"].bb-shell .bb-owner { margin-left: auto; color: var(--bb-dim); }
 
 /* Desktop: the page is the viewport; the active function's grid fills what the chrome leaves. */
-@media (min-width: 769px) {
+/* Complement of the stacked query below (phones, and phones held sideways). */
+@media (min-width: 769px) and (min-height: 521px), (min-width: 769px) and (orientation: portrait) {
   :root[data-variant="finance"].bb-shell #app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
   :root[data-variant="finance"].bb-shell #app > :not(#main) { flex: none; }
   :root[data-variant="finance"].bb-shell #main.main-content[data-fn] {
@@ -474,7 +475,7 @@
   /* !important: the upstream map splitter restores a saved height inline (map-split-height). */
   :root[data-variant="finance"].bb-shell #mapContainer { flex: 1 1 auto !important; min-height: 0; height: auto !important; }
   :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel:not(.hidden) {
-    min-height: 0 !important; /* upstream .panel.span-N reserves a min-height with !important */
+    /* min-height: 0 comes inline from TerminalGrid (upstream .panel.span-N is a layered !important). */
     min-width: 0;
     height: auto;
     max-height: none;
@@ -485,9 +486,13 @@
   :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel-content { flex: 1 1 auto; min-height: 0; max-height: none; overflow: auto; }
 }
 
-/* Phones: one stacked column in the function's mobile order (TerminalGrid sets CSS order), compact nav,
-   command line and keys; the upstream tab bar, category chips and collapsible map are gone. */
-@media (max-width: 768px) {
+/* Phones (and phones held sideways): one stacked column in the function's mobile order (TerminalGrid sets
+   CSS order), compact nav, command line and keys; the upstream tab bar, category chips and collapsible map
+   are gone. Keep this query in sync with STACKED_QUERY in terminal-grid.ts. */
+@media (max-width: 768px), (max-height: 520px) and (orientation: landscape) {
+  /* No upstream tab bar to clear: bottom-anchored prompts sit on the safe area. */
+  :root[data-variant="finance"].bb-shell { --wm-bottom-base: env(safe-area-inset-bottom, 0px); }
+  :root[data-variant="finance"].bb-shell .map-section .panel-title { display: inline; }
   [data-variant="finance"] body { font-size: 11px; }
   :root[data-variant="finance"].bb-shell .es-nav .es-nav-inner {
     flex-wrap: nowrap;
@@ -522,12 +527,11 @@
     height: auto;
     overflow: visible;
   }
-  /* !important: upstream turns .panels-grid into a padded flex column on phones with !important. */
-  :root[data-variant="finance"].bb-shell #panelsGrid { display: contents !important; }
+  /* #panelsGrid is flattened by TerminalGrid (inline display: contents !important): upstream's phone
+     rule is !important inside @layer base, which no unlayered rule can beat. */
   :root[data-variant="finance"].bb-shell #main[data-fn] #panelsGrid > :not(.bb-placed) { display: none; }
   :root[data-variant="finance"].bb-shell .main-content[data-fn] .panel:not(.hidden) {
     max-height: 60vh;
-    min-height: 0 !important;
     height: auto;
     display: flex;
     flex-direction: column;
@@ -572,7 +576,8 @@
   min-height: 0;
 }
 [data-variant="finance"] .panel-error-radar { display: none; }
-[data-variant="finance"] .panel-error-msg { color: var(--bb-dim); font-size: 11px; }
+[data-variant="finance"] .panel-error-state { flex-wrap: wrap; }
+[data-variant="finance"] .panel-error-msg { color: var(--bb-dim); font-size: 11px; text-align: left; max-width: none; }
 [data-variant="finance"] .panel-error-msg::before { content: "N/A — "; color: var(--bb-dim); }
 /* The command line already shows the time: drop the map header clock (it overlapped 2D/3D). */
 :root[data-variant="finance"].bb-shell #mapSection .header-clock { display: none; }
