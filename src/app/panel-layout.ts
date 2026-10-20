@@ -2146,8 +2146,12 @@ export class PanelLayoutManager implements AppModule {
     this.applySavedPanelOrder();
     this.ctx.unifiedSettings?.refreshPanelToggles();
     this.mountLiveNewsIfReady();
-    this.scheduleLoadAllData();
+    // Terminal shell: flipping through function keys switches screens at once but loads data once settled.
+    if (document.documentElement.classList.contains('bb-shell')) this.loadAllDataAfterSwitch();
+    else this.scheduleLoadAllData();
   }
+
+  private readonly loadAllDataAfterSwitch = debounce(() => this.scheduleLoadAllData(), 350);
 
   private setupMobilePanelNav(): void {
     const grid = document.getElementById('panelsGrid');
@@ -2203,7 +2207,9 @@ export class PanelLayoutManager implements AppModule {
       this.updateMobileMapCollapseBtn(false);
       window.dispatchEvent(new Event('resize'));
     }
-    document.querySelector('.main-content')?.scrollTo({ top: 0 });
+    // Terminal shell: the page scrolls (not .main-content) and the map sits among the stacked panels.
+    if (document.documentElement.classList.contains('bb-shell')) mapSection.scrollIntoView({ block: 'start' });
+    else document.querySelector('.main-content')?.scrollTo({ top: 0 });
   }
 
   renderCriticalBanner(postures: TheaterPostureSummary[]): void {
