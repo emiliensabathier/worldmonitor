@@ -2808,6 +2808,7 @@ export class PanelLayoutManager implements AppModule {
     this.createNewsPanel('intel', 'panels.intel');
 
     this.lazyDefaultPanel('crypto', () => import('@/components/MarketPanel'), 'CryptoPanel');
+    this.lazyDefaultPanel('fx-majors', () => import('@/components/MarketPanel'), 'FxMajorsPanel');
     this.lazyDefaultPanel('crypto-heatmap', () => import('@/components/MarketPanel'), 'CryptoHeatmapPanel');
     this.lazyDefaultPanel('defi-tokens', () => import('@/components/MarketPanel'), 'DefiTokensPanel');
     this.lazyDefaultPanel('ai-tokens', () => import('@/components/MarketPanel'), 'AiTokensPanel');

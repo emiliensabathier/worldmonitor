@@ -39,6 +39,16 @@ for _ in $(seq "$HEALTH_TRIES"); do
 done
 curl -fsS -o /dev/null "$HEALTH_URL" || { echo "Site not answering on $HEALTH_URL" >&2; exit 1; }
 
+# The host seeders (worldmonitor-seed.timer) and the relay image run from the deploy checkout:
+# move it to the deployed commit, and rebuild the relay only when its inputs changed.
+echo "== seeders and relay"
+DEPLOYED_BEFORE=$(git -C "$DEPLOY_DIR" rev-parse HEAD)
+git -C "$DEPLOY_DIR" fetch -q "$PWD" "$HEAD_COMMIT"
+git -C "$DEPLOY_DIR" checkout -q --detach "$HEAD_COMMIT"
+if ! git -C "$DEPLOY_DIR" diff --quiet "$DEPLOYED_BEFORE" "$HEAD_COMMIT" -- scripts shared Dockerfile.relay; then
+  (cd "$DEPLOY_DIR" && sudo docker compose build ais-relay && sudo docker compose up -d --no-build ais-relay)
+fi
+
 echo "== source offer"
 offer=$(mktemp)
 {

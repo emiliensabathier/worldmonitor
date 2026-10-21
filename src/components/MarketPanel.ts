@@ -1,7 +1,7 @@
 import { Panel } from './Panel';
 import { t } from '@/services/i18n';
 import type { MarketData, CryptoData, TokenData } from '@/types';
-import { formatPrice, formatChange, getChangeClass, getHeatmapClass } from '@/utils';
+import { formatPrice, formatQuotePrice, formatChange, getChangeClass, getHeatmapClass } from '@/utils';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { miniSparkline } from '@/utils/sparkline';
 import { SITE_VARIANT } from '@/config';
@@ -52,6 +52,31 @@ function unavailableSymbolLine(group: UnavailableSymbolGroup): string {
     : t('components.markets.unavailable.symbols', { symbols, reason });
 }
 
+function renderMarketRows(markets: readonly MarketData[]): string {
+  return markets
+    .map((stock, idx) => {
+      const attrs = getMarketChartRowAttributes(
+        stock,
+        idx,
+        t('components.markets.chart.title', { symbol: stock.display }),
+      );
+      return `
+      <div${attrs}>
+        <div class="market-info">
+          <span class="market-name">${escapeHtml(stock.name)}</span>
+          <span class="market-symbol">${escapeHtml(stock.display)}</span>
+        </div>
+        <div class="market-data">
+          ${miniSparkline(stock.sparkline, stock.change)}
+          <span class="market-price">${formatQuotePrice(stock.symbol, stock.price)}</span>
+          <span class="market-change ${getChangeClass(stock.change!)}">${formatChange(stock.change!)}</span>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+}
+
 export class MarketPanel extends Panel {
   private _markets: MarketData[] = [];
   private _marketsRateLimited = false;
@@ -94,28 +119,7 @@ export class MarketPanel extends Panel {
 
   private _renderMarketsAndDisclosures(): void {
     const disclosureHtml = renderChinaCorporateDisclosureSignals(this._disclosures);
-    const marketsHtml = this._markets
-      .map((stock, idx) => {
-        const attrs = getMarketChartRowAttributes(
-          stock,
-          idx,
-          t('components.markets.chart.title', { symbol: stock.display }),
-        );
-        return `
-      <div${attrs}>
-        <div class="market-info">
-          <span class="market-name">${escapeHtml(stock.name)}</span>
-          <span class="market-symbol">${escapeHtml(stock.display)}</span>
-        </div>
-        <div class="market-data">
-          ${miniSparkline(stock.sparkline, stock.change)}
-          <span class="market-price">${formatPrice(stock.price!)}</span>
-          <span class="market-change ${getChangeClass(stock.change!)}">${formatChange(stock.change!)}</span>
-        </div>
-      </div>
-    `;
-      })
-      .join('');
+    const marketsHtml = renderMarketRows(this._markets);
     const content = composeMarketPanelContent({
       hasMarkets: this._markets.length > 0,
       marketsHtml,
@@ -133,6 +137,32 @@ export class MarketPanel extends Panel {
       content.html,
       'legacy Panel.setContent() migration',
     ));
+  }
+}
+
+/** Major currency pairs and the dollar index, as market quotes (rate, day change, sparkline). */
+export class FxMajorsPanel extends Panel {
+  private _pairs: MarketData[] = [];
+
+  constructor() {
+    super({ id: 'fx-majors', title: t('panels.fxMajors'), infoTooltip: t('components.fxMajors.infoTooltip') });
+    bindMarketChartActivation(this.content, () => this._pairs, (pair) => openMarketChartModal(pair));
+  }
+
+  public renderPairs(data: MarketData[]): void {
+    this._pairs = data;
+    const content = composeMarketPanelContent({
+      hasMarkets: data.length > 0,
+      marketsHtml: renderMarketRows(data),
+      disclosureHtml: '',
+      unavailableMessage: t('common.failedMarketData'),
+      unavailableSymbolLines: [],
+    });
+    if (content.kind === 'retry') {
+      this.showRetrying(content.message);
+      return;
+    }
+    this.setSafeContent(unsafeRawHtml(content.html, 'market rows, escaped in renderMarketRows'));
   }
 }
 

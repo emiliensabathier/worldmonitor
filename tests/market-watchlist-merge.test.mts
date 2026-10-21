@@ -31,28 +31,32 @@ const CATALOG_BY_SYMBOL = new Map(STOCK_CONFIG.symbols.map((entry) => [entry.sym
 const DEFAULTS: MarketSymbolMeta[] = STOCK_CONFIG.defaultSymbols.map((symbol) => CATALOG_BY_SYMBOL.get(symbol)!);
 
 const custom = (symbol: string) => ({ symbol, name: `${symbol} Inc`, display: symbol });
+// Defaults padded past the cap: the #6305 regression only shows when the defaults exceed it.
+const PADDED_DEFAULTS: MarketSymbolMeta[] = [
+  ...DEFAULTS,
+  ...Array.from({ length: Math.max(0, MARKET_WATCHLIST_MAX_ENTRIES + 1 - DEFAULTS.length) }, (_, i) => custom(`DEF${i}`)),
+];
 
 describe('mergeWatchlistSymbols', () => {
-  it('keeps the default universe larger than the custom cap (the regression precondition)', () => {
-    assert.equal(DEFAULTS.length, 59, 'catalog customization must preserve current main defaults');
-    assert.ok(
-      DEFAULTS.length > MARKET_WATCHLIST_MAX_ENTRIES,
-      `this regression only exists because the ${DEFAULTS.length} defaults exceed the ${MARKET_WATCHLIST_MAX_ENTRIES} cap`,
-    );
+  it('keeps the Sabathier Terminal default universe (indices first)', () => {
+    // Upstream ships 59 defaults; the Terminal trims them to 43, below the cap.
+    assert.equal(DEFAULTS.length, 43);
+    assert.ok(PADDED_DEFAULTS.length > MARKET_WATCHLIST_MAX_ENTRIES);
+    assert.equal(DEFAULTS[0]!.symbol, '^GSPC');
   });
 
   it('forwards every custom ticker even though the defaults already exceed the cap', () => {
-    const merged = mergeWatchlistSymbols(DEFAULTS, [custom('RIVN'), custom('PLTR'), custom('SOFI')]);
+    const merged = mergeWatchlistSymbols(PADDED_DEFAULTS, [custom('RIVN'), custom('PLTR'), custom('SOFI')]);
 
-    assert.equal(merged.length, DEFAULTS.length + 3);
-    assert.deepEqual(merged.slice(DEFAULTS.length).map((s) => s.symbol), ['RIVN', 'PLTR', 'SOFI']);
+    assert.equal(merged.length, PADDED_DEFAULTS.length + 3);
+    assert.deepEqual(merged.slice(PADDED_DEFAULTS.length).map((s) => s.symbol), ['RIVN', 'PLTR', 'SOFI']);
   });
 
   it('bounds the custom entries at the cap rather than the merged length', () => {
     const many = Array.from({ length: MARKET_WATCHLIST_MAX_ENTRIES + 12 }, (_, i) => custom(`SYM${i}`));
-    const merged = mergeWatchlistSymbols(DEFAULTS, many);
+    const merged = mergeWatchlistSymbols(PADDED_DEFAULTS, many);
 
-    assert.equal(merged.length, DEFAULTS.length + MARKET_WATCHLIST_MAX_ENTRIES);
+    assert.equal(merged.length, PADDED_DEFAULTS.length + MARKET_WATCHLIST_MAX_ENTRIES);
     assert.equal(merged.at(-1)?.symbol, `SYM${MARKET_WATCHLIST_MAX_ENTRIES - 1}`);
   });
 

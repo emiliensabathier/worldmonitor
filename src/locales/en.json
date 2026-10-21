@@ -455,6 +455,7 @@
   "panels": {
     "liveNews": "Live News",
     "markets": "Markets",
+    "fxMajors": "Major currencies",
     "marketImplications": "AI Market Implications",
     "map": "Global Situation",
     "techMap": "Global Tech",
@@ -2209,6 +2210,9 @@
     },
     "disasterCorrelation": {
       "infoTooltip": "<strong>Disaster Cascade</strong> Detects converging natural disaster and infrastructure signals:<ul><li>Correlates earthquakes, wildfires, floods, and weather extremes</li><li>Tracks cascading effects on infrastructure and supply chains</li><li>Highlights regions with compounding disaster risk</li></ul>Click a card to zoom to the affected region."
+    },
+    "fxMajors": {
+      "infoTooltip": "<strong>Major currencies</strong> EUR/USD, GBP/USD, USD/JPY and the other majors, plus the dollar index (DXY): rate, day change and recent trend, from seeded Yahoo Finance quotes. Click a pair for its chart."
     },
     "markets": {
       "infoTooltip": "<strong>Markets</strong> Delayed or seeded stock indices, equities, and crypto prices. Customize your watchlist with the Watchlist button. Sparklines show recent price trend.",

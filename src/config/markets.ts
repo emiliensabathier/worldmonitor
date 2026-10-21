@@ -30,5 +30,8 @@ export const MARKET_SYMBOLS: MarketSymbol[] = stocksConfig.defaultSymbols.map((s
   return entry;
 });
 
+/** Major currency pairs and the dollar index: seeded with the market quotes, shown by the FX screen. */
+export const FX_MAJORS: MarketSymbol[] = AUXILIARY_STOCK_CATALOG.filter((symbol) => symbol.region === 'fx');
+
 export const CRYPTO_IDS = cryptoConfig.ids as readonly string[];
 export const CRYPTO_MAP: Record<string, { name: string; symbol: string }> = cryptoConfig.meta;

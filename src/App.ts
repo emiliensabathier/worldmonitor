@@ -929,7 +929,7 @@ export class App {
       const panel = this.state.panels['news-market-correlation'] as NewsMarketCorrelationPanel | undefined;
       if (panel) primeTask('news-market-correlation', () => panel.fetchData());
     }
-    if (shouldPrimeAny(['markets', 'heatmap', 'commodities', 'crypto', 'energy-complex'])) {
+    if (shouldPrimeAny(['markets', 'fx-majors', 'heatmap', 'commodities', 'crypto', 'energy-complex'])) {
       primeTask('markets', () => this.dataLoader.loadMarkets());
     }
     if (shouldPrime('polymarket')) {
@@ -3910,7 +3910,7 @@ export class App {
           name: 'markets',
           fn: () => this.dataLoader.loadMarkets(),
           intervalMs: REFRESH_INTERVALS.markets,
-          condition: () => this.isAnyPanelNearViewport(['markets', 'heatmap', 'commodities', 'crypto', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens']),
+          condition: () => this.isAnyPanelNearViewport(['markets', 'fx-majors', 'heatmap', 'commodities', 'crypto', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens']),
         },
         {
           name: 'predictions',

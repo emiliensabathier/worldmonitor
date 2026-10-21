@@ -31,14 +31,14 @@ describe('terminal functions', () => {
     expect(panelHome('insights')).toBeNull();
   });
   it('one tab per function, deskKey = code, only that function panels enabled', () => {
-    const base = { markets: { name: 'M', enabled: true, priority: 1 }, forex: { name: 'F', enabled: true, priority: 1 } };
+    const base = { markets: { name: 'M', enabled: true, priority: 1 }, 'fx-majors': { name: 'F', enabled: true, priority: 1 } };
     const tabs = buildFunctionTabs(base, 'fr', ids());
     expect(tabs.map((t) => t.deskKey)).toEqual(TERMINAL_FUNCTIONS.map((f) => f.code));
     expect(tabs[0]!.name).toBe('TOP');
     const fx = tabs.find((t) => t.deskKey === 'FX')!;
-    expect(fx.panelSettings.forex!.enabled).toBe(true);
+    expect(fx.panelSettings['fx-majors']!.enabled).toBe(true);
     expect(fx.panelSettings.markets!.enabled).toBe(false);
-    expect(fx.panelOrder).toEqual(['forex']);
+    expect(fx.panelOrder).toEqual(['fx-majors']);
   });
   it('rebuilds an old desk, keeps a current one, opens the requested function', () => {
     const base = { markets: { name: 'M', enabled: true, priority: 1 } };

@@ -16,6 +16,7 @@ import {
   SECTORS,
   COMMODITIES,
   MARKET_SYMBOLS,
+  FX_MAJORS,
   STOCK_CATALOG,
   SITE_VARIANT,
   LAYER_TO_SOURCE,
@@ -155,6 +156,7 @@ import type {
   CryptoHeatmapPanel,
   CryptoPanel,
   DefiTokensPanel,
+  FxMajorsPanel,
   HeatmapPanel,
   MarketPanel,
   OtherTokensPanel,
@@ -1001,7 +1003,7 @@ export class DataLoaderManager implements AppModule {
 
     // Happy variant only loads news data -- skip all geopolitical/financial/military data
     if (SITE_VARIANT !== 'happy') {
-      if (shouldLoadAny(['markets', 'heatmap', 'commodities', 'crypto', 'energy-complex', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens'])) {
+      if (shouldLoadAny(['markets', 'fx-majors', 'heatmap', 'commodities', 'crypto', 'energy-complex', 'crypto-heatmap', 'defi-tokens', 'ai-tokens', 'other-tokens'])) {
         tasks.push({ name: 'markets', task: () => runGuarded('markets', () => this.loadMarkets()) });
       }
       if (hasPremiumAccess() && shouldLoad('stock-analysis')) {
@@ -2447,6 +2449,34 @@ export class DataLoaderManager implements AppModule {
     }
   }
 
+  private async loadFxMajors(
+    hydratedQuotes: ListMarketQuotesResponse['quotes'] | undefined,
+    fetchMultipleStocks: typeof import('@/services/market').fetchMultipleStocks,
+    isCurrent: () => boolean,
+  ): Promise<void> {
+    const panel = this.ctx.panels['fx-majors'] as FxMajorsPanel | undefined;
+    if (!panel) return;
+    try {
+      const meta = new Map(FX_MAJORS.map((s) => [s.symbol, s]));
+      const seeded = selectCompleteHydratedMarketQuotes(FX_MAJORS, hydratedQuotes);
+      const pairs = seeded
+        ? seeded.map((q) => ({
+          symbol: q.symbol,
+          name: meta.get(q.symbol)?.name ?? q.name,
+          display: meta.get(q.symbol)?.display ?? q.display ?? q.symbol,
+          price: q.price ?? null,
+          change: q.change ?? null,
+          sparkline: q.sparkline?.length ? q.sparkline : undefined,
+        }))
+        : (await fetchMultipleStocks(FX_MAJORS)).data
+          .sort((a, b) => FX_MAJORS.findIndex((s) => s.symbol === a.symbol) - FX_MAJORS.findIndex((s) => s.symbol === b.symbol));
+      if (isCurrent()) panel.renderPairs(pairs);
+    } catch (error) {
+      console.warn('[DataLoader] FX majors failed', error);
+      if (isCurrent()) panel.showRetrying(t('common.failedMarketData'));
+    }
+  }
+
   async loadMarkets(): Promise<void> {
     const generation = this.marketLoadGuard.begin();
     const isCurrent = () => this.marketLoadGuard.isCurrent(generation);
@@ -2536,6 +2566,9 @@ export class DataLoaderManager implements AppModule {
           marketsPanel?.renderMarkets(stocksResult.data, stocksResult.rateLimited, stocksResult.unavailableSymbols);
         }
       }
+
+      // Major currency pairs ride the same seeded quote snapshot as the markets.
+      void this.loadFxMajors(hydratedMarkets?.quotes, fetchMultipleStocks, isCurrent);
 
       const stockAvailability = resolveStockMarketAvailability({
         stockCount: stocksResult.data.length,

@@ -39,6 +39,8 @@ const {
 };
 
 const AUX_SYMBOLS = ['NQ=F', 'QQQ', '^VXN', '^TNX'] as const;
+// Sabathier Terminal: the FX screen's major pairs are seeded as auxiliary quotes after the NQ basket.
+const FX_AUX_SYMBOLS = ['EURUSD=X', 'GBPUSD=X', 'JPY=X', 'CHF=X', 'AUDUSD=X', 'CAD=X', 'CNY=X', 'EURGBP=X', 'EURCHF=X', 'EURJPY=X', 'DX-Y.NYB'] as const;
 const stocks = JSON.parse(readFileSync(resolve(root, 'shared/stocks.json'), 'utf8'));
 const railwayStocks = JSON.parse(readFileSync(resolve(root, 'scripts/shared/stocks.json'), 'utf8'));
 const universe = loadMarketSeedUniverse(stocks);
@@ -78,9 +80,9 @@ describe('NQ auxiliary quote basket', () => {
       assert.ok(universe.allSymbols.includes(symbol), `${symbol} must be seeded`);
       assert.ok(stocks.yahooOnly.includes(symbol), `${symbol} must stay Yahoo-only`);
     }
-    assert.equal(STOCK_CATALOG.length, 93);
+    assert.equal(STOCK_CATALOG.length, 99);
     assert.equal(universe.coverageExpectedCount, universe.catalogSymbols.length);
-    assert.deepEqual(universe.auxiliarySymbols, [...AUX_SYMBOLS]);
+    assert.deepEqual(universe.auxiliarySymbols, [...AUX_SYMBOLS, ...FX_AUX_SYMBOLS]);
   });
 
   it('derives both seed paths from catalog plus auxiliary symbols without duplicates', () => {
@@ -93,7 +95,7 @@ describe('NQ auxiliary quote basket', () => {
     assert.equal(new Set(universe.allSymbols).size, universe.allSymbols.length);
     assert.deepEqual(
       universe.allSymbols.slice(universe.catalogSymbols.length),
-      [...AUX_SYMBOLS],
+      [...AUX_SYMBOLS, ...FX_AUX_SYMBOLS],
     );
   });
 

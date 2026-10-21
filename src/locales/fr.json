@@ -388,6 +388,7 @@
   "panels": {
     "liveNews": "Actualités en direct",
     "markets": "Marchés",
+    "fxMajors": "Devises majeures",
     "map": "Situation mondiale",
     "techMap": "Tech mondiale",
     "status": "État du système",
@@ -2460,6 +2461,9 @@
     },
     "disasterCorrelation": {
       "infoTooltip": "<strong>Cascade de catastrophes</strong> Détecte les signaux convergents de catastrophe naturelle et d'infrastructure :<ul><li>Corrélie les tremblements de terre, les incendies, les inondations et les extrêmes météorologiques</li><li>Suit les effets en cascade sur l'infrastructure et la chaîne d'approvisionnement</li><li>Met en évidence les régions avec un risque de catastrophe composé</li></ul>Cliquez sur une carte pour zoomer sur la région affectée."
+    },
+    "fxMajors": {
+      "infoTooltip": "<strong>Devises majeures</strong> EUR/USD, GBP/USD, USD/JPY et les autres grandes paires, plus l’indice dollar (DXY) : cours, variation du jour et tendance récente, d’après les cotations Yahoo Finance préchargées. Cliquez sur une paire pour son graphique."
     },
     "markets": {
       "infoTooltip": "<strong>Marchés</strong> Indices boursiers, titres et prix crypto différés ou préchargés. Personnalisez votre liste de suivi avec le bouton Liste de suivi. Les sparklines affichent la tendance des prix récente.",
