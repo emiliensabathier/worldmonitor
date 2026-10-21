@@ -75,17 +75,17 @@ function pctBadge(val: number | null | undefined, invertColor = false): string {
 }
 
 function pricePressureBadge(wowPct: number): string {
-  if (Math.abs(wowPct) < 0.5) return '<span class="cp-pressure cp-pressure--steady">Stable</span>';
-  if (wowPct >= 2) return '<span class="cp-pressure cp-pressure--stress">Rising</span>';
-  if (wowPct > 0.5) return '<span class="cp-pressure cp-pressure--watch">Mild Rise</span>';
-  return '<span class="cp-pressure cp-pressure--green">Easing</span>';
+  if (Math.abs(wowPct) < 0.5) return `<span class="cp-pressure cp-pressure--steady">${escapeHtml(t('components.consumerPrices.pressure.stable'))}</span>`;
+  if (wowPct >= 2) return `<span class="cp-pressure cp-pressure--stress">${escapeHtml(t('components.consumerPrices.pressure.rising'))}</span>`;
+  if (wowPct > 0.5) return `<span class="cp-pressure cp-pressure--watch">${escapeHtml(t('components.consumerPrices.pressure.mildRise'))}</span>`;
+  return `<span class="cp-pressure cp-pressure--green">${escapeHtml(t('components.consumerPrices.pressure.easing'))}</span>`;
 }
 
 function freshnessLabel(min: number | null): string {
-  if (min == null || min === 0) return 'Unknown';
-  if (min < 60) return `${min}m ago`;
-  if (min < 1440) return `${Math.round(min / 60)}h ago`;
-  return `${Math.round(min / 1440)}d ago`;
+  if (min == null || min === 0) return t('components.consumerPrices.freshness.unknown');
+  if (min < 60) return t('components.consumerPrices.freshness.minutesAgo', { n: String(min) });
+  if (min < 1440) return t('components.consumerPrices.freshness.hoursAgo', { n: String(Math.round(min / 60)) });
+  return t('components.consumerPrices.freshness.daysAgo', { n: String(Math.round(min / 1440)) });
 }
 
 function freshnessClass(min: number | null): string {
@@ -104,6 +104,11 @@ function inflationSeverityClass(pct: number | null): string {
   if (pct >= 5) return 'cp-infl--warn';
   if (pct < 0) return 'cp-infl--deflation';
   return 'cp-infl--ok';
+}
+
+// Market buttons: only the "all" entry carries a word; the rest are flag + code.
+function marketLabel(m: { code: string; label: string }): string {
+  return m.code === 'all' ? `🌍 ${t('components.consumerPrices.markets.all')}` : m.label;
 }
 
 function fmtInflation(pct: number | null): string {
@@ -332,7 +337,7 @@ export class ConsumerPricesPanel extends Panel {
     const marketBarHtml = `
       <div class="cp-market-bar">
         ${MARKETS.map((m) => `
-          <button class="cp-market-btn${market === m.code ? ' active' : ''}" data-market="${m.code}">${m.label}</button>
+          <button class="cp-market-btn${market === m.code ? ' active' : ''}" data-market="${m.code}">${escapeHtml(marketLabel(m))}</button>
         `).join('')}
       </div>
     `;
@@ -380,8 +385,8 @@ export class ConsumerPricesPanel extends Panel {
           ${tabsHtml}
           <div class="cp-body cp-seeding-state">
             <div class="cp-seeding-icon">📊</div>
-            <div class="cp-seeding-title">Data collection in progress</div>
-            <div class="cp-seeding-sub">Retail prices are being aggregated — check back in a few hours.</div>
+            <div class="cp-seeding-title">${escapeHtml(t('components.consumerPrices.seeding.title'))}</div>
+            <div class="cp-seeding-sub">${escapeHtml(t('components.consumerPrices.seeding.sub'))}</div>
           </div>
         </div>
       `, 'legacy Panel.setContent() migration'));
@@ -398,7 +403,7 @@ export class ConsumerPricesPanel extends Panel {
         break;
       case 'movers':
         bodyHtml = rangeHtml + (categoryFilter
-          ? `<div class="cp-filter-bar">Filtered: <strong>${escapeHtml(categoryFilter)}</strong> <button data-clear-filter aria-label="Clear category filter">✕</button></div>`
+          ? `<div class="cp-filter-bar">${escapeHtml(t('components.consumerPrices.filter.filtered'))} <strong>${escapeHtml(categoryFilter)}</strong> <button data-clear-filter aria-label="${escapeHtml(t('components.consumerPrices.filter.clear'))}">✕</button></div>`
           : '') + this.renderMovers();
         break;
       case 'spread':
@@ -420,7 +425,7 @@ export class ConsumerPricesPanel extends Panel {
 
   private renderGlobalOverview(): string {
     if (this.allMarkets.length === 0) {
-      return `<div class="cp-empty-state">Loading global data…</div>`;
+      return `<div class="cp-empty-state">${escapeHtml(t('components.consumerPrices.global.loading'))}</div>`;
     }
     const rows = SINGLE_MARKETS.map((m) => {
       const d = this.allMarkets.find((r) => r.marketCode === m.code);
@@ -429,7 +434,7 @@ export class ConsumerPricesPanel extends Panel {
         return `
           <tr class="cp-global-row" data-market="${m.code}">
             <td class="cp-global-flag">${m.label}</td>
-            <td colspan="4" class="cp-global-pending">Pending data</td>
+            <td colspan="4" class="cp-global-pending">${escapeHtml(t('components.consumerPrices.global.pending'))}</td>
           </tr>`;
       }
       const wowBadge = pctBadge(d.wowPct, true);
@@ -447,12 +452,12 @@ export class ConsumerPricesPanel extends Panel {
       <table class="cp-global-table">
         <thead>
           <tr>
-            <th scope="col">Market</th><th scope="col">Index</th><th scope="col">WoW</th><th scope="col">Spread</th><th scope="col">Updated</th>
+            <th scope="col">${escapeHtml(t('components.consumerPrices.global.market'))}</th><th scope="col">${escapeHtml(t('components.consumerPrices.global.index'))}</th><th scope="col">${escapeHtml(t('components.consumerPrices.global.wow'))}</th><th scope="col">${escapeHtml(t('components.consumerPrices.global.spread'))}</th><th scope="col">${escapeHtml(t('components.consumerPrices.global.updated'))}</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
-      <div class="cp-global-hint">Tap a market row to drill in</div>
+      <div class="cp-global-hint">${escapeHtml(t('components.consumerPrices.global.hint'))}</div>
     `;
   }
 
@@ -525,36 +530,36 @@ export class ConsumerPricesPanel extends Panel {
 
   private renderOverview(): string {
     const d = this.overview;
-    if (!d || !d.asOf || d.asOf === '0') return this.renderEmptyState('No price data available yet');
+    if (!d || !d.asOf || d.asOf === '0') return this.renderEmptyState(t('components.consumerPrices.overview.noData'));
 
     return `
       <div class="cp-overview-grid">
         <div class="cp-stat-card">
-          <div class="cp-stat-label">Essentials Basket</div>
+          <div class="cp-stat-label">${escapeHtml(t('components.consumerPrices.overview.essentialsBasket'))}</div>
           <div class="cp-stat-value">${d.essentialsIndex > 0 ? d.essentialsIndex.toFixed(1) : '—'}</div>
-          <div class="cp-stat-sub">Index (base 100)</div>
+          <div class="cp-stat-sub">${escapeHtml(t('components.consumerPrices.overview.indexBase'))}</div>
         </div>
         <div class="cp-stat-card">
-          <div class="cp-stat-label">Value Basket</div>
+          <div class="cp-stat-label">${escapeHtml(t('components.consumerPrices.overview.valueBasket'))}</div>
           <div class="cp-stat-value">${d.valueBasketIndex > 0 ? d.valueBasketIndex.toFixed(1) : '—'}</div>
-          <div class="cp-stat-sub">Index (base 100)</div>
+          <div class="cp-stat-sub">${escapeHtml(t('components.consumerPrices.overview.indexBase'))}</div>
         </div>
         <div class="cp-stat-card">
-          <div class="cp-stat-label">Week-over-Week</div>
+          <div class="cp-stat-label">${escapeHtml(t('components.consumerPrices.overview.wow'))}</div>
           <div class="cp-stat-value">${pctBadge(d.wowPct, true)}</div>
           <div class="cp-stat-sub">${pricePressureBadge(d.wowPct)}</div>
         </div>
         <div class="cp-stat-card">
-          <div class="cp-stat-label">Month-over-Month</div>
+          <div class="cp-stat-label">${escapeHtml(t('components.consumerPrices.overview.mom'))}</div>
           <div class="cp-stat-value">${pctBadge(d.momPct, true)}</div>
         </div>
         <div class="cp-stat-card">
-          <div class="cp-stat-label">Retailer Spread</div>
+          <div class="cp-stat-label">${escapeHtml(t('components.consumerPrices.overview.retailerSpread'))}</div>
           <div class="cp-stat-value">${d.retailerSpreadPct > 0 ? `${d.retailerSpreadPct.toFixed(1)}%` : '—'}</div>
-          <div class="cp-stat-sub">Cheapest vs most exp.</div>
+          <div class="cp-stat-sub">${escapeHtml(t('components.consumerPrices.overview.cheapestVsMost'))}</div>
         </div>
         <div class="cp-stat-card">
-          <div class="cp-stat-label">Coverage</div>
+          <div class="cp-stat-label">${escapeHtml(t('components.consumerPrices.overview.coverage'))}</div>
           <div class="cp-stat-value">${d.coveragePct > 0 ? `${d.coveragePct.toFixed(0)}%` : '—'}</div>
           <div class="cp-stat-sub ${freshnessClass(d.freshnessLagMin)}">
             ${freshnessLabel(d.freshnessLagMin)}
@@ -562,7 +567,7 @@ export class ConsumerPricesPanel extends Panel {
         </div>
       </div>
       ${d.topCategories?.length ? `
-        <div class="cp-section-label">Top Category Movers</div>
+        <div class="cp-section-label">${escapeHtml(t('components.consumerPrices.overview.topMovers'))}</div>
         <div class="cp-category-mini">
           ${d.topCategories.slice(0, 5).map((c) => this.renderCategoryMini(c)).join('')}
         </div>
@@ -583,17 +588,17 @@ export class ConsumerPricesPanel extends Panel {
 
   private renderCategories(): string {
     const cats = this.categories?.categories;
-    if (!cats?.length) return this.renderEmptyState('No category data yet');
+    if (!cats?.length) return this.renderEmptyState(t('components.consumerPrices.categoriesTable.noData'));
 
     return `
       <table class="cp-table">
         <thead>
           <tr>
-            <th scope="col">Category</th>
-            <th scope="col">WoW</th>
-            <th scope="col">Month-over-month change</th>
-            <th scope="col">Trend</th>
-            <th scope="col">Coverage</th>
+            <th scope="col">${escapeHtml(t('components.consumerPrices.categoriesTable.category'))}</th>
+            <th scope="col">${escapeHtml(t('components.consumerPrices.categoriesTable.wow'))}</th>
+            <th scope="col">${escapeHtml(t('components.consumerPrices.categoriesTable.momChange'))}</th>
+            <th scope="col">${escapeHtml(t('components.consumerPrices.categoriesTable.trend'))}</th>
+            <th scope="col">${escapeHtml(t('components.consumerPrices.categoriesTable.coverage'))}</th>
           </tr>
         </thead>
         <tbody>
@@ -602,7 +607,7 @@ export class ConsumerPricesPanel extends Panel {
               <td><strong>${escapeHtml(c.name)}</strong></td>
               <td>${pctBadge(c.wowPct, true)}</td>
               <td>${pctBadge(c.momPct, true)}</td>
-              <td>${c.sparkline?.length ? sparkline(c.sparkline, 'var(--accent)', 48, 18, '', { label: `${c.name} price trend` }) : '—'}</td>
+              <td>${c.sparkline?.length ? sparkline(c.sparkline, 'var(--accent)', 48, 18, '', { label: t('components.consumerPrices.categoriesTable.trendLabel', { name: c.name }) }) : '—'}</td>
               <td>${c.coveragePct > 0 ? `${c.coveragePct.toFixed(0)}%` : '—'}</td>
             </tr>
           `).join('')}
@@ -613,7 +618,7 @@ export class ConsumerPricesPanel extends Panel {
 
   private renderMovers(): string {
     const d = this.movers;
-    if (!d) return this.renderEmptyState('No price movement data yet');
+    if (!d) return this.renderEmptyState(t('components.consumerPrices.moversList.noData'));
 
     const { categoryFilter } = this.settings;
     const filterFn = (m: PriceMover) => !categoryFilter || m.category === categoryFilter;
@@ -621,17 +626,17 @@ export class ConsumerPricesPanel extends Panel {
     const risers = (d.risers ?? []).filter(filterFn).slice(0, 8);
     const fallers = (d.fallers ?? []).filter(filterFn).slice(0, 8);
 
-    if (!risers.length && !fallers.length) return this.renderEmptyState('No movers for this selection');
+    if (!risers.length && !fallers.length) return this.renderEmptyState(t('components.consumerPrices.moversList.noneForSelection'));
 
     return `
       <div class="cp-movers-grid">
         <div class="cp-movers-col">
-          <div class="cp-col-header cp-col-header--up">Rising</div>
-          ${risers.map((m) => this.renderMoverRow(m, 'up')).join('') || '<div class="cp-empty-col">None</div>'}
+          <div class="cp-col-header cp-col-header--up">${escapeHtml(t('components.consumerPrices.moversList.rising'))}</div>
+          ${risers.map((m) => this.renderMoverRow(m, 'up')).join('') || `<div class="cp-empty-col">${escapeHtml(t('components.consumerPrices.moversList.none'))}</div>`}
         </div>
         <div class="cp-movers-col">
-          <div class="cp-col-header cp-col-header--down">Falling</div>
-          ${fallers.map((m) => this.renderMoverRow(m, 'down')).join('') || '<div class="cp-empty-col">None</div>'}
+          <div class="cp-col-header cp-col-header--down">${escapeHtml(t('components.consumerPrices.moversList.falling'))}</div>
+          ${fallers.map((m) => this.renderMoverRow(m, 'down')).join('') || `<div class="cp-empty-col">${escapeHtml(t('components.consumerPrices.moversList.none'))}</div>`}
         </div>
       </div>
     `;
@@ -653,11 +658,11 @@ export class ConsumerPricesPanel extends Panel {
 
   private renderSpread(): string {
     const d = this.spread;
-    if (!d?.retailers?.length) return this.renderEmptyState('Retailer comparison starts once data is collected');
+    if (!d?.retailers?.length) return this.renderEmptyState(t('components.consumerPrices.spreadList.noData'));
 
     return `
       <div class="cp-spread-header">
-        <span>Spread: <strong>${d.spreadPct.toFixed(1)}%</strong></span>
+        <span>${escapeHtml(t('components.consumerPrices.spreadList.spread'))} <strong>${d.spreadPct.toFixed(1)}%</strong></span>
         <span class="cp-spread-basket">${escapeHtml(d.basketSlug)} · ${escapeHtml(d.currencyCode)}</span>
       </div>
       <div class="cp-spread-list">
@@ -673,8 +678,8 @@ export class ConsumerPricesPanel extends Panel {
         <div class="cp-spread-rank">#${rank + 1}</div>
         <div class="cp-spread-name">${escapeHtml(r.name)}</div>
         <div class="cp-spread-total">${currency} ${r.basketTotal.toFixed(2)}</div>
-        <div class="cp-spread-delta">${isChepeast ? '<span class="cp-badge cp-badge--green">Cheapest</span>' : pctBadge(r.deltaVsCheapestPct, true)}</div>
-        <div class="cp-spread-items">${r.itemCount} items</div>
+        <div class="cp-spread-delta">${isChepeast ? `<span class="cp-badge cp-badge--green">${escapeHtml(t('components.consumerPrices.spreadList.cheapest'))}</span>` : pctBadge(r.deltaVsCheapestPct, true)}</div>
+        <div class="cp-spread-items">${escapeHtml(t('components.consumerPrices.spreadList.items', { n: String(r.itemCount) }))}</div>
         <div class="cp-spread-fresh ${freshnessClass(r.freshnessMin)}">${freshnessLabel(r.freshnessMin)}</div>
       </div>
     `;
@@ -682,19 +687,19 @@ export class ConsumerPricesPanel extends Panel {
 
   private renderHealth(): string {
     const d = this.freshness;
-    if (!d?.retailers?.length) return this.renderEmptyState('Health data not yet available');
+    if (!d?.retailers?.length) return this.renderEmptyState(t('components.consumerPrices.healthList.noData'));
 
     return `
       <div class="cp-health-summary">
-        <span>Overall freshness: <strong class="${freshnessClass(d.overallFreshnessMin)}">${freshnessLabel(d.overallFreshnessMin)}</strong></span>
-        ${d.stalledCount > 0 ? `<span class="cp-stalled-badge">${d.stalledCount} stalled</span>` : ''}
+        <span>${escapeHtml(t('components.consumerPrices.healthList.overallFreshness'))} <strong class="${freshnessClass(d.overallFreshnessMin)}">${freshnessLabel(d.overallFreshnessMin)}</strong></span>
+        ${d.stalledCount > 0 ? `<span class="cp-stalled-badge">${escapeHtml(t('components.consumerPrices.healthList.stalled', { n: String(d.stalledCount) }))}</span>` : ''}
       </div>
       <div class="cp-health-list">
         ${d.retailers.map((r) => `
           <div class="cp-health-row">
             <span class="cp-health-name">${escapeHtml(r.name)}</span>
             <span class="cp-health-status cp-health-status--${r.status}">${r.status}</span>
-            <span class="cp-health-rate">${r.parseSuccessRate > 0 ? `${r.parseSuccessRate.toFixed(0)}% parse` : '—'}</span>
+            <span class="cp-health-rate">${r.parseSuccessRate > 0 ? escapeHtml(t('components.consumerPrices.healthList.parseRate', { pct: r.parseSuccessRate.toFixed(0) })) : '—'}</span>
             <span class="cp-health-fresh ${freshnessClass(r.freshnessMin)}">${freshnessLabel(r.freshnessMin)}</span>
           </div>
         `).join('')}

@@ -2,6 +2,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  frCurveFrom,
+  groupWebstatSeries,
   parseEcbCsv,
   parseWebstatRecords,
   policyRowsFromBis,
@@ -70,5 +72,30 @@ describe('seed-rates-board', () => {
     ] };
     const rows = policyRowsFromBis(bis, [{ code: 'US', label: 'Fed' }, { code: 'XX', label: 'None' }, { code: 'GB', label: 'BoE' }]);
     assert.deepEqual(rows.map((r) => [r.label, r.value, r.previous]), [['Fed', 3.875, 3.625], ['BoE', 3.75, 3.75]]);
+  });
+
+  it('groups Webstat observations by series', () => {
+    const out = groupWebstatSeries([
+      { series_key: 'A', time_period_start: '2026-10-20', obs_value: 2 },
+      { series_key: 'B', time_period_start: '2026-10-20', obs_value: 3 },
+      { series_key: 'A', time_period_start: '2026-10-17', obs_value: 1 },
+    ]);
+    assert.deepEqual(out.A, [{ date: '2026-10-17', value: 1 }, { date: '2026-10-20', value: 2 }]);
+    assert.deepEqual(out.B, [{ date: '2026-10-20', value: 3 }]);
+  });
+
+  it('builds the French curve on the dates all tenors share', () => {
+    const tenors = ['1Y', '2Y', '3Y', '5Y', '7Y', '10Y', '15Y', '20Y', '25Y', '30Y'];
+    const byTenor = Object.fromEntries(tenors.map((t, i) => [t, [
+      { date: '2026-10-16', value: 2 + i * 0.1 },
+      { date: '2026-10-17', value: 2.05 + i * 0.1 },
+      ...(t === '30Y' ? [] : [{ date: '2026-10-20', value: 2.1 + i * 0.1 }]),
+    ]]));
+    const curve = frCurveFrom(byTenor);
+    assert.equal(curve.date, '2026-10-17');
+    assert.equal(curve.previousDate, '2026-10-16');
+    assert.equal(curve.tenors.length, 10);
+    assert.deepEqual(curve.tenors[5], { tenor: '10Y', value: 2.55, previous: 2.5 });
+    assert.equal(frCurveFrom({ '10Y': [{ date: '2026-10-20', value: 3 }] }), null);
   });
 });

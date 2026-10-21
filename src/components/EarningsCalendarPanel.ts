@@ -48,9 +48,13 @@ function surprisePct(actual: number | null, estimate: number | null): string {
   return `${sign}${pct.toFixed(1)}%`;
 }
 
+// Group key for entries without a date; translated only at render time.
+const UNKNOWN_DATE_KEY = 'Unknown';
+
 function dateLabel(dateStr: string): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  if (dateStr === UNKNOWN_DATE_KEY) return t('components.earningsCalendar.unknownDate');
   const d = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(d.getTime())) return dateStr;
   const days = Math.round((d.getTime() - today.getTime()) / 86_400_000);
@@ -61,7 +65,13 @@ function dateLabel(dateStr: string): string {
 }
 
 function renderEntry(e: EarningsEntry): string {
+  // Keep the market codes (BMO/AMC) as badges; the tooltip spells them out.
   const hourLabel = e.hour === 'bmo' ? 'BMO' : e.hour === 'amc' ? 'AMC' : e.hour ? e.hour.toUpperCase() : '';
+  const hourTitle = e.hour === 'bmo'
+    ? t('components.earningsCalendar.hour.bmo')
+    : e.hour === 'amc'
+      ? t('components.earningsCalendar.hour.amc')
+      : '';
   const hourStyle = e.hour === 'bmo'
     ? 'background:rgba(46,204,113,0.15);color:#2ecc71'
     : e.hour === 'amc'
@@ -105,7 +115,7 @@ function renderEntry(e: EarningsEntry): string {
   return `
     <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
       <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;padding-top:1px">
-        ${hourLabel ? `<span style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));font-weight:700;padding:2px 5px;border-radius:3px;${hourStyle};letter-spacing:0.04em">${escapeHtml(hourLabel)}</span>` : ''}
+        ${hourLabel ? `<span${hourTitle ? ` title="${escapeHtml(hourTitle)}"` : ''} style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));font-weight:700;padding:2px 5px;border-radius:3px;${hourStyle};letter-spacing:0.04em">${escapeHtml(hourLabel)}</span>` : ''}
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:calc(12px * var(--wm-panel-effective-scale, 1));font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(e.company)}</div>
@@ -168,7 +178,7 @@ export class EarningsCalendarPanel extends Panel {
 
     const grouped = new Map<string, EarningsEntry[]>();
     for (const e of earnings) {
-      const key = e.date || 'Unknown';
+      const key = e.date || UNKNOWN_DATE_KEY;
       const arr = grouped.get(key);
       if (arr) arr.push(e);
       else grouped.set(key, [e]);

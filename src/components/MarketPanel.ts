@@ -1,5 +1,5 @@
 import { Panel } from './Panel';
-import { t } from '@/services/i18n';
+import { getCurrentLanguage, t } from '@/services/i18n';
 import type { MarketData, CryptoData, TokenData } from '@/types';
 import { formatPrice, formatQuotePrice, formatChange, getChangeClass, getHeatmapClass } from '@/utils';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
@@ -52,7 +52,7 @@ function unavailableSymbolLine(group: UnavailableSymbolGroup): string {
     : t('components.markets.unavailable.symbols', { symbols, reason });
 }
 
-function renderMarketRows(markets: readonly MarketData[]): string {
+function renderMarketRows(markets: readonly MarketData[], nameOf: (stock: MarketData) => string = (stock) => stock.name): string {
   return markets
     .map((stock, idx) => {
       const attrs = getMarketChartRowAttributes(
@@ -63,7 +63,7 @@ function renderMarketRows(markets: readonly MarketData[]): string {
       return `
       <div${attrs}>
         <div class="market-info">
-          <span class="market-name">${escapeHtml(stock.name)}</span>
+          <span class="market-name">${escapeHtml(nameOf(stock))}</span>
           <span class="market-symbol">${escapeHtml(stock.display)}</span>
         </div>
         <div class="market-data">
@@ -140,6 +140,13 @@ export class MarketPanel extends Panel {
   }
 }
 
+/** Translated name of a major pair (keyed by its display code, EUR/USD → EUR_USD), else the seeded English name. */
+function fxPairName(pair: MarketData): string {
+  const key = `components.fxMajors.names.${pair.display.replace(/[^A-Za-z0-9]/g, '_')}`;
+  const name = t(key);
+  return name && name !== key ? name : pair.name;
+}
+
 /** Major currency pairs and the dollar index, as market quotes (rate, day change, sparkline). */
 export class FxMajorsPanel extends Panel {
   private _pairs: MarketData[] = [];
@@ -153,7 +160,7 @@ export class FxMajorsPanel extends Panel {
     this._pairs = data;
     const content = composeMarketPanelContent({
       hasMarkets: data.length > 0,
-      marketsHtml: renderMarketRows(data),
+      marketsHtml: renderMarketRows(data, fxPairName),
       disclosureHtml: '',
       unavailableMessage: t('common.failedMarketData'),
       unavailableSymbolLines: [],
@@ -256,8 +263,8 @@ export class HeatmapPanel extends Panel {
     const hasValuations = Object.keys(this._valuations).length > 0;
     if (!hasValuations) return '';
     return `<div style="display:flex;gap:4px;margin-bottom:8px">
-      <button class="panel-tab${this._tab === 'performance' ? ' active' : ''}" data-tab="performance" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">Performance</button>
-      <button class="panel-tab${this._tab === 'valuations' ? ' active' : ''}" data-tab="valuations" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">Valuations</button>
+      <button class="panel-tab${this._tab === 'performance' ? ' active' : ''}" data-tab="performance" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${escapeHtml(t('components.heatmap.tabs.performance'))}</button>
+      <button class="panel-tab${this._tab === 'valuations' ? ' active' : ''}" data-tab="valuations" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${escapeHtml(t('components.heatmap.tabs.valuations'))}</button>
     </div>`;
   }
 
@@ -298,7 +305,7 @@ export class HeatmapPanel extends Panel {
         <div class="heatmap-cell ${getHeatmapClass(change)}">
           ${tickerHtml}
           <div class="sector-change ${getChangeClass(change)}">${formatChange(change)}</div>
-          <div class="sector-name">${escapeHtml(sector.name)}</div>
+          <div class="sector-name">${escapeHtml(translatedSymbolName('components.heatmap.sectors', sector.symbol, sector.name))}</div>
         </div>
       `;
         })
@@ -339,7 +346,7 @@ export class HeatmapPanel extends Panel {
       .filter((e) => e.forwardPE !== null || e.trailingPE !== null);
 
     if (entries.length === 0) {
-      return '<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">No valuation data available</div>';
+      return `<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.heatmap.noValuations'))}</div>`;
     }
 
     const sorted = [...entries].sort((a, b) => (a.forwardPE ?? a.trailingPE ?? 999) - (b.forwardPE ?? b.trailingPE ?? 999));
@@ -347,7 +354,7 @@ export class HeatmapPanel extends Panel {
     const median = (peValues.length > 0 ? peValues[Math.floor(peValues.length / 2)] : undefined) ?? 20;
     const maxPE = Math.max(...peValues, 30);
 
-    const nameMap = new Map(this._heatmapData.map((s) => [s.symbol, s.name]));
+    const nameMap = new Map(this._heatmapData.map((s) => [s.symbol, translatedSymbolName('components.heatmap.sectors', s.symbol, s.name)]));
     const fmtPE = (v: number | null) => v !== null ? v.toFixed(1) : '--';
     const fmtPct = (v: number | null) => {
       if (v === null) return '--';
@@ -387,7 +394,7 @@ export class HeatmapPanel extends Panel {
         // snapshot, so it must not read as current data.
         const isStale = this._staleValuationSymbols.has(e.symbol.toUpperCase());
         const staleMark = isStale
-          ? ` <span title="Last known value; not refreshed this cycle" style="color:var(--text-dim);font-size:calc(9px * var(--wm-panel-effective-scale, 1))">(stale)</span>`
+          ? ` <span title="${escapeHtml(t('components.heatmap.staleTitle'))}" style="color:var(--text-dim);font-size:calc(9px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.heatmap.stale'))}</span>`
           : '';
         return `<tr${isStale ? ' style="opacity:0.65"' : ''}>
   <td style="padding:3px 6px;white-space:nowrap;font-size:calc(11px * var(--wm-panel-effective-scale, 1))">${escapeHtml(name)}${staleMark}</td>
@@ -402,11 +409,11 @@ export class HeatmapPanel extends Panel {
     const table = `<div style="overflow-x:auto">
 <table style="width:100%;border-collapse:collapse;font-size:calc(11px * var(--wm-panel-effective-scale, 1))">
   <thead><tr style="color:var(--text-dim);border-bottom:1px solid var(--border)">
-    <th scope="col" style="padding:3px 6px;text-align:left;font-weight:500">Sector</th>
-    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Trail P/E</th>
-    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Fwd P/E</th>
-    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Beta</th>
-    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">Year to date</th>
+    <th scope="col" style="padding:3px 6px;text-align:left;font-weight:500">${escapeHtml(t('components.heatmap.columns.sector'))}</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">${escapeHtml(t('components.heatmap.columns.trailingPE'))}</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">${escapeHtml(t('components.heatmap.columns.forwardPE'))}</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">${escapeHtml(t('components.heatmap.columns.beta'))}</th>
+    <th scope="col" style="padding:3px 6px;text-align:right;font-weight:500">${escapeHtml(t('components.heatmap.columns.ytd'))}</th>
   </tr></thead>
   <tbody>${tableRows}</tbody>
 </table></div>`;
@@ -630,6 +637,20 @@ interface HyperliquidFlowView {
   unavailable: boolean;
 }
 
+/**
+ * Translate a config/data-provided display name (sector, commodity) by its
+ * stable symbol. Symbols such as `GC=F` or `^VIX` are sanitized so they never
+ * inject `.` path separators into the i18n key; when the key is missing,
+ * i18next echoes it back and we keep the original name.
+ */
+function translatedSymbolName(prefix: string, symbol: string | undefined, fallback: string): string {
+  // English keeps the name the data carries; other languages look the symbol up.
+  if (!symbol || getCurrentLanguage().startsWith('en')) return fallback;
+  const key = `${prefix}.${symbol.replace(/[^A-Za-z0-9]/g, '_')}`;
+  const translated = t(key);
+  return translated && translated !== key ? translated : fallback;
+}
+
 // CCYUSD=X (e.g. EURUSD): USD is quote, rate = USD/FC → XAU_FC = XAU_USD / rate
 // USDCCY=X (e.g. USDJPY, USDCHF): USD is base, rate = FC/USD → XAU_FC = XAU_USD * rate
 const XAU_CURRENCY_CONFIG: Array<{ symbol: string; label: string; flag: string; multiply: boolean }> = [
@@ -744,7 +765,7 @@ export class CommoditiesPanel extends Panel {
       `<button class="panel-tab${this._tab === 'commodities' ? ' active' : ''}" data-tab="commodities" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${firstTabLabel}</button>`,
     ];
     if (hasPhysical) tabs.push(`<button class="panel-tab${this._tab === 'physical' ? ' active' : ''}" data-tab="physical" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${t('components.commodities.physicalPremiums')}</button>`);
-    if (hasFx) tabs.push(`<button class="panel-tab${this._tab === 'fx' ? ' active' : ''}" data-tab="fx" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">EUR FX</button>`);
+    if (hasFx) tabs.push(`<button class="panel-tab${this._tab === 'fx' ? ' active' : ''}" data-tab="fx" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${escapeHtml(t('components.commodities.tabs.eurFx'))}</button>`);
     if (hasXau) tabs.push(`<button class="panel-tab${this._tab === 'xau' ? ' active' : ''}" data-tab="xau" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">XAU/FX</button>`);
     return tabs.length > 1 ? `<div style="display:flex;gap:4px;margin-bottom:8px">${tabs.join('')}</div>` : '';
   }
@@ -791,8 +812,8 @@ export class CommoditiesPanel extends Panel {
     const arrow20d = physicalTrendArrow(reading.trend20d);
     return `<div class="physical-divergence-state" style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:calc(10px * var(--wm-panel-effective-scale, 1))">
       <span style="border:1px solid ${color};color:${color};border-radius:999px;padding:1px 6px">${escapeHtml(label)}</span>
-      <span title="${escapeHtml(t('components.commodities.divergence.fiveDayTrend'))}">${escapeHtml(arrow5d)} 5d</span>
-      <span title="${escapeHtml(t('components.commodities.divergence.twentyDayTrend'))}">${escapeHtml(arrow20d)} 20d</span>
+      <span title="${escapeHtml(t('components.commodities.divergence.fiveDayTrend'))}">${escapeHtml(arrow5d)} ${escapeHtml(t('components.commodities.divergence.fiveDayShort'))}</span>
+      <span title="${escapeHtml(t('components.commodities.divergence.twentyDayTrend'))}">${escapeHtml(arrow20d)} ${escapeHtml(t('components.commodities.divergence.twentyDayShort'))}</span>
     </div>`;
   }
 
@@ -843,7 +864,7 @@ export class CommoditiesPanel extends Panel {
 
   private _renderXau(): string {
     const gcf = this._commodityData.find(d => d.symbol === 'GC=F' && d.price !== null);
-    if (!gcf?.price) return `<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">Gold price unavailable</div>`;
+    if (!gcf?.price) return `<div style="padding:8px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.commodities.goldUnavailable'))}</div>`;
 
     const goldUsd = gcf.price;
     const fxMap = new Map(this._commodityData.filter(d => d.symbol?.endsWith('=X')).map(d => [d.symbol!, d]));
@@ -867,9 +888,9 @@ export class CommoditiesPanel extends Panel {
           <div class="commodity-price" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1))">--</div>
         </div>`
       ).join('');
-      return `<div class="commodities-grid">${placeholders}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">FX rates unavailable</div>`;
+      return `<div class="commodities-grid">${placeholders}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(t('components.commodities.fxUnavailable'))}</div>`;
     }
-    return `<div class="commodities-grid">${rows.join('')}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">Computed from GC=F + Yahoo FX</div>`;
+    return `<div class="commodities-grid">${rows.join('')}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(t('components.commodities.xauSource'))}</div>`;
   }
 
   private _render(): void {
@@ -901,7 +922,7 @@ export class CommoditiesPanel extends Panel {
           ${changeStr ? `<div class="commodity-change ${escapeHtml(changeClass)}">${escapeHtml(changeStr)}</div>` : ''}
         </div>`;
       }).join('');
-      this.setSafeContent(unsafeRawHtml(tabBar + `<div class="commodities-grid">${items}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">Source: ECB</div>`, 'legacy Panel.setContent() migration'));
+      this.setSafeContent(unsafeRawHtml(tabBar + `<div class="commodities-grid">${items}</div><div style="margin-top:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(t('components.commodities.ecbSource'))}</div>`, 'legacy Panel.setContent() migration'));
       return;
     }
 
@@ -930,7 +951,7 @@ export class CommoditiesPanel extends Panel {
     const grid = '<div class="commodities-grid">' +
       validData.map(c => `
         <div class="commodity-item">
-          <div class="commodity-name">${escapeHtml(c.display)}</div>
+          <div class="commodity-name">${escapeHtml(translatedSymbolName('components.commodities.names', c.symbol, c.display))}</div>
           ${miniSparkline(c.sparkline, c.change, 60, 18)}
           <div class="commodity-price">${formatPrice(c.price!)}</div>
           <div class="commodity-change ${getChangeClass(c.change!)}">${formatChange(c.change!)}</div>

@@ -18,7 +18,9 @@ export const CANONICAL_KEY = 'economic:rates-board:v1';
 const TTL_SECONDS = 3 * 24 * 3600;
 const ECB_API = 'https://data-api.ecb.europa.eu/service/data';
 const WEBSTAT_OBSERVATIONS = 'https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets/observations/exports/json';
-const OAT_TEC10_SERIES = 'FM.D.FR.EUR.FR2.BB.FRMOYTEC10.HSTA';
+// Banque de France constant-maturity OAT yields (TEC), one series per tenor.
+export const FR_TEC_TENORS = ['1Y', '2Y', '3Y', '5Y', '7Y', '10Y', '15Y', '20Y', '25Y', '30Y'];
+const tecSeries = (tenor) => `FM.D.FR.EUR.FR2.BB.FRMOYTEC${tenor.replace('Y', '')}.HSTA`;
 
 // ─── Pure helpers (exported for tests) ──────────────────────────────────────────
 
@@ -67,6 +69,38 @@ export function parseWebstatRecords(payload) {
     if (date && Number.isFinite(value)) out.push({ date, value });
   }
   return out.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
+/** Webstat observations of several series → { seriesKey: [{ date, value }] }, dates ascending. */
+export function groupWebstatSeries(payload) {
+  const out = {};
+  for (const record of Array.isArray(payload) ? payload : payload?.results ?? []) {
+    const key = record?.series_key;
+    if (typeof key !== 'string') continue;
+    (out[key] ??= []).push(record);
+  }
+  for (const key of Object.keys(out)) out[key] = parseWebstatRecords(out[key]);
+  return out;
+}
+
+/**
+ * French curve from the TEC series: every tenor on the latest date they all share, and on the shared
+ * date before it. Null when fewer than half the tenors are there.
+ */
+export function frCurveFrom(byTenor) {
+  const tenors = FR_TEC_TENORS.filter((t) => byTenor[t]?.length);
+  if (tenors.length < FR_TEC_TENORS.length / 2) return null;
+  const dateSets = tenors.map((t) => new Set(byTenor[t].map((o) => o.date)));
+  const common = [...dateSets[0]].filter((d) => dateSets.every((set) => set.has(d))).sort();
+  const date = common.at(-1);
+  if (!date) return null;
+  const previousDate = common.length > 1 ? common.at(-2) : null;
+  const at = (t, d) => byTenor[t].find((o) => o.date === d)?.value ?? null;
+  return {
+    date,
+    previousDate,
+    tenors: tenors.map((t) => ({ tenor: t, value: round(at(t, date)), previous: previousDate ? round(at(t, previousDate)) : null })),
+  };
 }
 
 /** A board row from an ascending observation list: latest value, the one before it, its date. */
@@ -135,26 +169,29 @@ async function fetchEcb(flowAndKey, lastN) {
   return parseEcbCsv(await res.text());
 }
 
-async function fetchOatDaily() {
+/** The French TEC curve, { tenor: [{ date, value }] }; null without a Banque de France key or on failure. */
+async function fetchFrenchTec() {
   const key = process.env.BANQUE_DE_FRANCE_API_KEY;
   if (!key) return null;
   try {
+    const since = new Date(Date.now() - 21 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+    const keys = FR_TEC_TENORS.map((t) => `"${tecSeries(t)}"`).join(',');
     const query = new URLSearchParams({
-      select: 'time_period_start,obs_value',
-      where: `series_key="${OAT_TEC10_SERIES}"`,
+      select: 'series_key,time_period_start,obs_value',
+      where: `series_key in (${keys}) and time_period_start >= date'${since}'`,
       order_by: 'time_period_start desc',
-      limit: '30',
     });
     const res = await fetch(`${WEBSTAT_OBSERVATIONS}?${query}`, {
       headers: { Accept: 'application/json', Authorization: `Apikey ${key}`, 'User-Agent': CHROME_UA },
       signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const obs = parseWebstatRecords(await res.json());
-    if (obs.length === 0) throw new Error('no observations');
-    return obs;
+    const bySeries = groupWebstatSeries(await res.json());
+    const byTenor = Object.fromEntries(FR_TEC_TENORS.map((t) => [t, bySeries[tecSeries(t)] ?? []]));
+    if (!byTenor['10Y'].length) throw new Error('no TEC 10 observations');
+    return byTenor;
   } catch (err) {
-    console.warn(`  Banque de France TEC 10 unavailable (${err.message}); falling back to the ECB monthly rate`);
+    console.warn(`  Banque de France TEC unavailable (${err.message}); falling back to the ECB monthly rate`);
     return null;
   }
 }
@@ -177,11 +214,11 @@ const POLICY_BANKS = [
 
 export async function fetchRatesBoard() {
   const irsKey = (cc) => `IRS.M.${cc}.L.L40.CI.0000.EUR.N.Z`;
-  const [irs, aaa, dfr, oatDaily, dgs10, dgs2, gbCurve, jpCurve, bis] = await Promise.all([
+  const [irs, aaa, dfr, frTec, dgs10, dgs2, gbCurve, jpCurve, bis] = await Promise.all([
     fetchEcb('IRS/M.FR+DE+IT+ES.L.L40.CI.0000.EUR.N.Z', 3),
     fetchEcb('YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y', 30),
     fetchEcb('FM/D.U2.EUR.4F.KR.DFR.LEV', 400),
-    fetchOatDaily(),
+    fetchFrenchTec(),
     readSeeded('economic:fred:v1:DGS10:0'),
     readSeeded('economic:fred:v1:DGS2:0'),
     readSeeded(`economic:yield-curve:gb:v1:${new Date().getUTCFullYear()}`),
@@ -192,6 +229,7 @@ export async function fetchRatesBoard() {
   const aaa10 = aaa['YC.B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y'] ?? [];
   const us10 = fredObservations(dgs10);
   const us2 = fredObservations(dgs2);
+  const oatDaily = frTec?.['10Y'] ?? null;
   const oat = oatDaily
     ? rowFrom('FR', 'OAT', oatDaily, 'daily', 'Banque de France')
     : rowFrom('FR', 'OAT', irs[irsKey('FR')], 'monthly', 'ECB');
@@ -225,7 +263,7 @@ export async function fetchRatesBoard() {
     ...policyRowsFromBis(bis, POLICY_BANKS),
   ].filter(Boolean);
 
-  return { sovereign, spreads, policy, updatedAt: new Date().toISOString() };
+  return { sovereign, spreads, policy, frCurve: frTec ? frCurveFrom(frTec) : null, updatedAt: new Date().toISOString() };
 }
 
 export function declareRecords(data) {

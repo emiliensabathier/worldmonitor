@@ -24,7 +24,7 @@ export const TERMINAL_FUNCTIONS: readonly TerminalFunction[] = [
   { code: 'GOVT', label: { en: 'Rates', fr: 'Taux' }, areas: ['yield-curve rates-board'], columns: '1.3fr 1fr', mobile: ['rates-board', 'yield-curve'] },
   { code: 'FX', label: { en: 'FX', fr: 'Devises' }, areas: ['fx-majors fx crypto'], columns: '1fr 1.3fr 1fr', mobile: ['fx-majors', 'fx', 'crypto'] },
   { code: 'CMDTY', label: { en: 'Commodities', fr: 'Matières premières' }, areas: ['commodities energy-complex map', 'gold-intelligence energy-complex map'], columns: '1fr 1fr 1.3fr', mobile: ['commodities', 'energy-complex', 'gold-intelligence', 'map'] },
-  { code: 'ECO', label: { en: 'Macro & risk', fr: 'Macro & risque' }, areas: ['economic-calendar macro-tiles fsi', 'economic-calendar macro-signals fear-greed', 'consumer-prices polymarket fear-greed'], mobile: ['macro-tiles', 'economic-calendar', 'fsi', 'macro-signals', 'fear-greed', 'consumer-prices', 'polymarket'] },
+  { code: 'ECO', label: { en: 'Macro & risk', fr: 'Macro & risque' }, areas: ['economic-calendar macro-tiles fsi', 'economic-calendar macro-signals fear-greed', 'credit-spreads polymarket fear-greed'], mobile: ['macro-tiles', 'credit-spreads', 'economic-calendar', 'fsi', 'macro-signals', 'fear-greed', 'polymarket'] },
   { code: 'N', label: { en: 'News', fr: 'Actualité' }, areas: ['live-news markets-news economic-news'], mobile: ['live-news', 'markets-news', 'economic-news'] },
   { code: 'LABS', label: { en: 'Studies', fr: 'Études' }, areas: ['finance-labs'], mobile: ['finance-labs'] },
 ];

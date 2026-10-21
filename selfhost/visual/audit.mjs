@@ -73,7 +73,7 @@ for (const theme of ['light', 'dark']) {
         headerVisibleOnMobile: innerWidth <= 768 && !!document.querySelector('.header') && getComputedStyle(document.querySelector('.header')).display !== 'none',
       };
     });
-    const ok = r.greens.length === 0 && r.bodyBg === 'rgb(0, 0, 0)' && r.agpl && r.navVisible && !r.hScroll && /IBM Plex Mono/.test(r.panelTitleFont)
+    const ok = r.greens.length === 0 && r.bodyBg === 'rgb(0, 0, 0)' && r.navVisible && !r.hScroll && /IBM Plex Mono/.test(r.panelTitleFont)
       && r.synthesisItems >= 5 && r.keys === 8 && r.labLinks >= 1 && !r.headerVisibleOnMobile;
     if (!ok) failed = true;
     report[`${theme}-${size}`] = { ok, ...r };
@@ -153,7 +153,7 @@ for (const theme of ['light', 'dark']) {
         agpl: !!agpl && agpl.getBoundingClientRect().height > 0,
       };
     });
-    const ok = r.fn === code && r.missing.length === 0 && !r.hScroll && !r.tabBar && r.minKey >= 40 && r.font >= 11 && r.agpl && r.ordered && r.mapH <= 0.45;
+    const ok = r.fn === code && r.missing.length === 0 && !r.hScroll && !r.tabBar && r.minKey >= 40 && r.font >= 11 && r.ordered && r.mapH <= 0.45;
     if (!ok) failed = true;
     report[`m-${code}`] = { ok, ...r };
     console.log(`${ok ? 'ok  ' : 'FAIL'} m-${code}: fn=${r.fn} missing=${r.missing.join(',')} hScroll=${r.hScroll} tabBar=${r.tabBar} minKey=${r.minKey} font=${r.font} agpl=${r.agpl} order=${r.titles} mapH=${r.mapH}`);
@@ -179,5 +179,16 @@ for (const theme of ['light', 'dark']) {
   await ctx.close();
 }
 await browser.close();
+
+// The footer no longer links the licence (removed on 2026-10-20); the AGPL source offer must still be served.
+{
+  const offer = new URL('/labs/source.txt', url);
+  const res = await fetch(offer).catch(() => null);
+  const text = res?.ok ? await res.text() : '';
+  const ok = /GNU Affero General Public License/.test(text);
+  if (!ok) failed = true;
+  report.sourceOffer = { ok, status: res?.status ?? null };
+  console.log(`${ok ? 'ok  ' : 'FAIL'} source offer: ${offer} status=${res?.status ?? 'none'}`);
+}
 writeFileSync(join(outdir, 'report.json'), JSON.stringify(report, null, 2));
 process.exit(failed ? 1 : 0);

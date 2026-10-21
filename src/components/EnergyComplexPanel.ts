@@ -7,6 +7,40 @@ import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { formatPrice, formatChange, getChangeClass } from '@/utils';
 import { miniSparkline } from '@/utils/sparkline';
 
+const EC = 'components.energyComplex';
+
+const METRIC_NAME_KEYS: Record<string, string> = {
+  wti: 'metrics.wti',
+  brent: 'metrics.brent',
+  production: 'metrics.production',
+  inventory: 'metrics.inventory',
+};
+
+const UNIT_KEYS: Record<string, string> = {
+  '$/barrel': 'units.usdPerBarrel',
+};
+
+const TAPE_LABEL_KEYS: Record<string, string> = {
+  'CL=F': 'tape.oil',
+  'BZ=F': 'tape.brent',
+  'NG=F': 'tape.natgas',
+};
+
+const EU_TREND_KEYS: Record<string, string> = {
+  stable: 'euTrend.stable',
+  injecting: 'euTrend.injecting',
+  withdrawing: 'euTrend.withdrawing',
+};
+
+function ec(key: string, params?: Record<string, unknown>): string {
+  return t(`${EC}.${key}`, params);
+}
+
+function mapped(map: Record<string, string>, value: string, fallback = value): string {
+  const key = map[value];
+  return key ? ec(key) : fallback;
+}
+
 function hasAnalytics(data: OilAnalytics | null): boolean {
   return !!(data?.wtiPrice || data?.brentPrice || data?.usProduction || data?.usInventory);
 }
@@ -70,12 +104,12 @@ export class EnergyComplexPanel extends Panel {
 
     const rows = d.ieaMembers.map(m => {
       const daysDisplay = m.netExporter
-        ? `<span class="energy-net-exporter-badge">Net Exporter</span>`
+        ? `<span class="energy-net-exporter-badge">${escapeHtml(ec('oilStocks.netExporter'))}</span>`
         : m.daysOfCover != null
-          ? escapeHtml(String(m.daysOfCover)) + ' d'
+          ? escapeHtml(ec('oilStocks.daysValue', { days: m.daysOfCover }))
           : '—';
       const warningBadge = m.belowObligation
-        ? `<span class="energy-below-obligation-badge">Below 90d</span>`
+        ? `<span class="energy-below-obligation-badge">${escapeHtml(ec('oilStocks.below90'))}</span>`
         : '';
       return `
         <tr class="oil-stocks-row">
@@ -88,26 +122,26 @@ export class EnergyComplexPanel extends Panel {
 
     const reg = d.regionalSummary;
     const euRow = reg?.europe?.avgDays != null
-      ? `<div class="oil-stocks-region-row"><span class="oil-stocks-region-name">Europe</span><span>avg ${escapeHtml(String(reg.europe.avgDays))}d / min ${escapeHtml(String(reg.europe?.minDays ?? '—'))}d</span>${(reg.europe.countBelowObligation ?? 0) > 0 ? `<span class="energy-below-obligation-badge">${escapeHtml(String(reg.europe.countBelowObligation))} below 90d</span>` : ''}</div>`
+      ? `<div class="oil-stocks-region-row"><span class="oil-stocks-region-name">${escapeHtml(ec('oilStocks.regions.europe'))}</span><span>${escapeHtml(ec('oilStocks.avgMin', { avg: reg.europe.avgDays, min: reg.europe?.minDays ?? '—' }))}</span>${(reg.europe.countBelowObligation ?? 0) > 0 ? `<span class="energy-below-obligation-badge">${escapeHtml(ec('oilStocks.belowCount', { count: reg.europe.countBelowObligation }))}</span>` : ''}</div>`
       : '';
     const apRow = reg?.asiaPacific?.avgDays != null
-      ? `<div class="oil-stocks-region-row"><span class="oil-stocks-region-name">Asia-Pacific</span><span>avg ${escapeHtml(String(reg.asiaPacific.avgDays))}d / min ${escapeHtml(String(reg.asiaPacific?.minDays ?? '—'))}d</span>${(reg.asiaPacific.countBelowObligation ?? 0) > 0 ? `<span class="energy-below-obligation-badge">${escapeHtml(String(reg.asiaPacific.countBelowObligation))} below 90d</span>` : ''}</div>`
+      ? `<div class="oil-stocks-region-row"><span class="oil-stocks-region-name">${escapeHtml(ec('oilStocks.regions.asiaPacific'))}</span><span>${escapeHtml(ec('oilStocks.avgMin', { avg: reg.asiaPacific.avgDays, min: reg.asiaPacific?.minDays ?? '—' }))}</span>${(reg.asiaPacific.countBelowObligation ?? 0) > 0 ? `<span class="energy-below-obligation-badge">${escapeHtml(ec('oilStocks.belowCount', { count: reg.asiaPacific.countBelowObligation }))}</span>` : ''}</div>`
       : '';
     const naRow = reg?.northAmerica
-      ? `<div class="oil-stocks-region-row"><span class="oil-stocks-region-name">North America</span><span>${escapeHtml(String(reg.northAmerica.netExporters ?? 0))} net exporter(s)${reg.northAmerica.avgDays != null ? `, avg ${escapeHtml(String(reg.northAmerica.avgDays))}d` : ''}</span></div>`
+      ? `<div class="oil-stocks-region-row"><span class="oil-stocks-region-name">${escapeHtml(ec('oilStocks.regions.northAmerica'))}</span><span>${escapeHtml(ec('oilStocks.netExporters', { count: reg.northAmerica.netExporters ?? 0 }))}${reg.northAmerica.avgDays != null ? escapeHtml(ec('oilStocks.avgSuffix', { avg: reg.northAmerica.avgDays })) : ''}</span></div>`
       : '';
 
     return `
       <div class="energy-tape-section" style="margin-top:8px">
-        <div class="energy-section-title">IEA Oil Stocks — Days of Cover</div>
+        <div class="energy-section-title">${escapeHtml(ec('oilStocks.title'))}</div>
         <table class="oil-stocks-table">
-          <thead><tr><th scope="col">#</th><th scope="col">Ctry</th><th scope="col">Days</th><th scope="col">vs 90d</th></tr></thead>
+          <thead><tr><th scope="col">#</th><th scope="col">${escapeHtml(ec('oilStocks.colCountry'))}</th><th scope="col">${escapeHtml(ec('oilStocks.colDays'))}</th><th scope="col">${escapeHtml(ec('oilStocks.colVs90'))}</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="oil-stocks-regional" style="margin-top:6px">
           ${euRow}${apRow}${naRow}
         </div>
-        <div class="indicator-date" style="margin-top:4px">Data: ${escapeHtml(d.dataMonth)} (IEA)</div>
+        <div class="indicator-date" style="margin-top:4px">${escapeHtml(ec('dataSource', { month: d.dataMonth, source: ec('sources.iea') }))}</div>
       </div>`;
   }
 
@@ -125,12 +159,12 @@ export class EnergyComplexPanel extends Panel {
 
     return `
       <div class="energy-tape-section" style="margin-top:8px">
-        <div class="energy-section-title">LNG Vulnerability</div>
+        <div class="energy-section-title">${escapeHtml(ec('lng.title'))}</div>
         <table class="oil-stocks-table">
-          <thead><tr><th scope="col">Country</th><th scope="col">LNG Share</th><th scope="col">LNG Imports</th></tr></thead>
+          <thead><tr><th scope="col">${escapeHtml(ec('lng.colCountry'))}</th><th scope="col">${escapeHtml(ec('lng.colShare'))}</th><th scope="col">${escapeHtml(ec('lng.colImports'))}</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        <div class="indicator-date" style="margin-top:4px">Data: ${escapeHtml(d.dataMonth)} (JODI Gas)</div>
+        <div class="indicator-date" style="margin-top:4px">${escapeHtml(ec('dataSource', { month: d.dataMonth, source: 'JODI Gas' }))}</div>
       </div>`;
   }
 
@@ -157,7 +191,7 @@ export class EnergyComplexPanel extends Panel {
     if (hasAnalytics(this.analytics)) footerParts.push('EIA');
     if (this.tape.length > 0) footerParts.push(t('components.energyComplex.liveTapeSource'));
     if (this.euGas) footerParts.push('GIE AGSI+');
-    if (this.oilStocksAnalysis) footerParts.push('IEA');
+    if (this.oilStocksAnalysis) footerParts.push(ec('sources.iea'));
     if (this.lngVulnerability) footerParts.push('JODI Gas');
 
     const latestWeek = this.crudeWeeks[0] ?? null;
@@ -192,10 +226,10 @@ export class EnergyComplexPanel extends Panel {
               return `
                 <div class="energy-summary-card">
                   <div class="energy-summary-head">
-                    <span class="energy-summary-name">${escapeHtml(metric.name)}</span>
+                    <span class="energy-summary-name">${escapeHtml(mapped(METRIC_NAME_KEYS, metric.id, metric.name))}</span>
                     <span class="energy-summary-trend" style="color:${escapeHtml(trendColor)}">${escapeHtml(getTrendIndicator(metric.trend))}</span>
                   </div>
-                  <div class="energy-summary-value">${escapeHtml(formatOilValue(metric.current, metric.unit))} <span class="energy-unit">${escapeHtml(metric.unit)}</span></div>
+                  <div class="energy-summary-value">${escapeHtml(formatOilValue(metric.current, metric.unit))} <span class="energy-unit">${escapeHtml(mapped(UNIT_KEYS, metric.unit))}</span></div>
                   <div class="energy-summary-change" style="color:${escapeHtml(trendColor)}">${escapeHtml(change)}</div>
                   <div class="indicator-date">${escapeHtml(metric.lastUpdated.slice(0, 10))}</div>
                 </div>
@@ -205,12 +239,12 @@ export class EnergyComplexPanel extends Panel {
         ` : ''}
         ${this.crudeWeeks.length > 0 ? `
           <div class="energy-tape-section" style="margin-top:8px">
-            <div class="energy-section-title">US Crude Inventories (Mb)</div>
+            <div class="energy-section-title">${escapeHtml(ec('crude.title'))}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
               ${miniSparkline(crudeSparklineValues, wowChange, 80, 22)}
               <div>
                 <span class="commodity-price">${escapeHtml(latestWeek ? latestWeek.stocksMb.toFixed(1) : '—')} Mb</span>
-                ${wowChange !== null ? `<span class="commodity-change ${escapeHtml(wowClass)}" style="margin-left:6px">${escapeHtml(wowSign + wowChange.toFixed(1))} WoW</span>` : ''}
+                ${wowChange !== null ? `<span class="commodity-change ${escapeHtml(wowClass)}" style="margin-left:6px">${escapeHtml(ec('wow', { value: wowSign + wowChange.toFixed(1) }))}</span>` : ''}
               </div>
             </div>
             <div class="indicator-date" style="margin-top:2px">${escapeHtml(latestWeek?.period ?? '')}</div>
@@ -218,12 +252,12 @@ export class EnergyComplexPanel extends Panel {
         ` : ''}
         ${this.natGasWeeks.length > 0 ? `
           <div class="energy-tape-section" style="margin-top:8px">
-            <div class="energy-section-title">US Nat Gas Storage (Bcf)</div>
+            <div class="energy-section-title">${escapeHtml(ec('natGas.title'))}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
               ${miniSparkline(ngSparklineValues, ngChange, 80, 22)}
               <div>
-                <span class="commodity-price">${escapeHtml(latestNg ? latestNg.storBcf.toFixed(0) : '—')} Bcf</span>
-                ${ngChange !== null ? `<span class="commodity-change ${escapeHtml(ngClass)}" style="margin-left:6px">${escapeHtml(ngSign + ngChange.toFixed(0))} WoW</span>` : ''}
+                <span class="commodity-price">${escapeHtml(latestNg ? latestNg.storBcf.toFixed(0) : '—')} ${escapeHtml(ec('natGas.unit'))}</span>
+                ${ngChange !== null ? `<span class="commodity-change ${escapeHtml(ngClass)}" style="margin-left:6px">${escapeHtml(ec('wow', { value: ngSign + ngChange.toFixed(0) }))}</span>` : ''}
               </div>
             </div>
             <div class="indicator-date" style="margin-top:2px">${escapeHtml(latestNg?.period ?? '')}</div>
@@ -231,13 +265,13 @@ export class EnergyComplexPanel extends Panel {
         ` : ''}
         ${euFillPct !== null ? `
           <div class="energy-tape-section" style="margin-top:8px">
-            <div class="energy-section-title">EU Gas Storage (Fill %)</div>
+            <div class="energy-section-title">${escapeHtml(ec('euGas.title'))}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
               ${miniSparkline(euSparklineValues, euChange1d, 80, 22)}
               <div>
                 <span class="commodity-price">${escapeHtml(euFillPct.toFixed(1))}%</span>
-                ${euChange1d !== null ? `<span class="commodity-change ${escapeHtml(euClass)}" style="margin-left:6px">${escapeHtml(euSign + euChange1d.toFixed(2))}% 1d</span>` : ''}
-                ${euTrend ? `<span style="margin-left:6px;font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(euTrend)}</span>` : ''}
+                ${euChange1d !== null ? `<span class="commodity-change ${escapeHtml(euClass)}" style="margin-left:6px">${escapeHtml(ec('euGas.change1d', { value: euSign + euChange1d.toFixed(2) }))}</span>` : ''}
+                ${euTrend ? `<span style="margin-left:6px;font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(mapped(EU_TREND_KEYS, euTrend))}</span>` : ''}
               </div>
             </div>
             <div class="indicator-date" style="margin-top:2px">${escapeHtml(this.euGas?.updatedAt ?? '')}</div>
@@ -249,7 +283,7 @@ export class EnergyComplexPanel extends Panel {
             <div class="commodities-grid energy-tape-grid">
               ${this.tape.map((item) => `
                 <div class="commodity-item energy-tape-card">
-                  <div class="commodity-name">${escapeHtml(item.display)}</div>
+                  <div class="commodity-name">${escapeHtml(mapped(TAPE_LABEL_KEYS, item.symbol, item.display))}</div>
                   ${miniSparkline(item.sparkline, item.change, 60, 18)}
                   <div class="commodity-price">${formatPrice(item.price!)}</div>
                   <div class="commodity-change ${getChangeClass(item.change ?? 0)}">${formatChange(item.change ?? 0)}</div>

@@ -48,16 +48,31 @@ function scoreColor(score: number): string {
 }
 
 function fmt(v: number | null | undefined, digits = 2): string {
-  if (v == null) return 'N/A';
+  if (v == null) return t('components.fearGreed.notAvailable');
   return v.toFixed(digits);
 }
 
+// Display-only translation of the seed's English score labels; the raw value
+// stays untouched for any comparison logic.
+const SCORE_LABEL_KEYS: Record<string, string> = {
+  'extreme fear': 'extremeFear',
+  'fear': 'fear',
+  'neutral': 'neutral',
+  'greed': 'greed',
+  'extreme greed': 'extremeGreed',
+};
+
+function scoreLabelDisplay(label: string): string {
+  const key = SCORE_LABEL_KEYS[label.trim().toLowerCase()];
+  return key ? t(`components.fearGreed.labels.${key}`) : label;
+}
+
 function getRegimeState(score: number): { state: string; stance: string; color: string } {
-  if (score <= 20) return { state: 'Crisis / Risk-Off',    stance: 'CASH',        color: '#c0392b' };
-  if (score <= 35) return { state: 'Stressed / Defensive', stance: 'DEFENSIVE',   color: '#e67e22' };
-  if (score <= 50) return { state: 'Fragile / Hedged',     stance: 'HEDGED',      color: '#f1c40f' };
-  if (score <= 65) return { state: 'Stable / Normal',      stance: 'NORMAL',      color: '#2ecc71' };
-  return               { state: 'Strong / Risk-On',       stance: 'AGGRESSIVE',  color: '#27ae60' };
+  if (score <= 20) return { state: t('components.fearGreed.regime.crisis'),   stance: t('components.fearGreed.stance.cash'),       color: '#c0392b' };
+  if (score <= 35) return { state: t('components.fearGreed.regime.stressed'), stance: t('components.fearGreed.stance.defensive'),  color: '#e67e22' };
+  if (score <= 50) return { state: t('components.fearGreed.regime.fragile'),  stance: t('components.fearGreed.stance.hedged'),     color: '#f1c40f' };
+  if (score <= 65) return { state: t('components.fearGreed.regime.stable'),   stance: t('components.fearGreed.stance.normal'),     color: '#2ecc71' };
+  return               { state: t('components.fearGreed.regime.strong'),     stance: t('components.fearGreed.stance.aggressive'), color: '#27ae60' };
 }
 
 function getDivergenceWarnings(d: FearGreedData): string[] {
@@ -67,10 +82,10 @@ function getDivergenceWarnings(d: FearGreedData): string[] {
   const cnn = d.cnnFearGreed;
   const comp = d.compositeScore;
   const trend = d.trend?.score ?? 50;
-  if (mom < 10)  warnings.push('Momentum at extreme low — broad equity selling pressure');
-  if (sent < 15) warnings.push('Sentiment in extreme fear zone');
-  if (cnn > 0 && Math.abs(comp - cnn) > 20) warnings.push(`CNN F&G ${Math.round(cnn)} diverges ${Math.abs(Math.round(comp - cnn))}pts from composite — sentiment/structural disconnect`);
-  if (trend < 20) warnings.push('Trend in breakdown — price structure deteriorating');
+  if (mom < 10)  warnings.push(t('components.fearGreed.warnings.momentumLow'));
+  if (sent < 15) warnings.push(t('components.fearGreed.warnings.sentimentFear'));
+  if (cnn > 0 && Math.abs(comp - cnn) > 20) warnings.push(t('components.fearGreed.warnings.cnnDivergence', { cnn: String(Math.round(cnn)), gap: String(Math.abs(Math.round(comp - cnn))) }));
+  if (trend < 20) warnings.push(t('components.fearGreed.warnings.trendBreakdown'));
   return warnings;
 }
 
@@ -98,7 +113,7 @@ function renderGauge(score: number, label: string, delta: number | null, color: 
   const nx = (cx + 75 * Math.cos(na)).toFixed(1);
   const ny = (cy - 75 * Math.sin(na)).toFixed(1);
 
-  const dStr = delta != null ? `${delta >= 0 ? '+' : ''}${delta.toFixed(1)} vs prev` : '';
+  const dStr = delta != null ? escapeHtml(t('components.fearGreed.vsPrev', { delta: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}` })) : '';
   const dFill = delta != null ? (delta >= 0 ? '#2ecc71' : '#e74c3c') : '';
   const deltaLine = dStr
     ? `<div data-gauge-role="delta" style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));line-height:1.25;color:${dFill}">${dStr}</div>`
@@ -160,24 +175,16 @@ function mapSeedPayload(raw: Record<string, unknown>): FearGreedData | null {
 
 const CAT_NAMES = ['sentiment','volatility','positioning','trend','breadth','momentum','liquidity','credit','macro','crossAsset'] as const;
 
-const CAT_DISPLAY: Record<string, string> = {
-  sentiment: 'Sentiment',
-  volatility: 'Volatility',
-  positioning: 'Positioning',
-  trend: 'Trend',
-  breadth: 'Breadth',
-  momentum: 'Momentum',
-  liquidity: 'Liquidity',
-  credit: 'Credit',
-  macro: 'Macro',
-  crossAsset: 'Cross-Asset',
-};
+// Category display names live under components.fearGreed.categories.<name>.
+function categoryDisplay(name: string): string {
+  return (CAT_NAMES as readonly string[]).includes(name) ? t(`components.fearGreed.categories.${name}`) : name;
+}
 
 export class FearGreedPanel extends Panel {
   private data: FearGreedData | null = null;
 
   constructor() {
-    super({ id: 'fear-greed', title: t('panels.fearGreed'), showCount: false, infoTooltip: 'Composite sentiment index: 10 weighted categories (volatility, positioning, breadth, momentum, liquidity, credit, macro, cross-asset, sentiment, trend).' });
+    super({ id: 'fear-greed', title: t('panels.fearGreed'), showCount: false, infoTooltip: t('components.fearGreed.infoTooltip') });
   }
 
   public async fetchData(): Promise<boolean> {
@@ -225,7 +232,7 @@ export class FearGreedPanel extends Panel {
 
     const d = this.data;
     const score = d.compositeScore;
-    const label = escapeHtml(d.compositeLabel);
+    const label = escapeHtml(scoreLabelDisplay(d.compositeLabel));
     const prev = d.previousScore;
     const delta = prev > 0 ? score - prev : null;
     const color = scoreColor(score);
@@ -238,9 +245,9 @@ export class FearGreedPanel extends Panel {
       const s = Math.round(c.score ?? 50);
       const w = Math.round((c.weight ?? 0) * 100);
       const contrib = (c.contribution ?? 0).toFixed(1);
-      const deg = c.degraded ? ' <span style="color:#e67e22;font-size:calc(10px * var(--wm-panel-effective-scale, 1))">degraded</span>' : '';
+      const deg = c.degraded ? ` <span style="color:#e67e22;font-size:calc(10px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.fearGreed.degraded'))}</span>` : '';
       const barColor = scoreColor(s);
-      const displayName = CAT_DISPLAY[name] ?? name;
+      const displayName = categoryDisplay(name);
       return `
         <div style="margin:4px 0">
           <div style="display:flex;justify-content:space-between;font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">
@@ -250,7 +257,7 @@ export class FearGreedPanel extends Panel {
           <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin:2px 0">
             <div style="width:${s}%;height:100%;background:${barColor};border-radius:2px;transition:width 0.3s"></div>
           </div>
-          <div style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${w}% weight &middot; +${contrib} pts</div>
+          <div style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(t('components.fearGreed.weightContribution', { weight: String(w), contrib }))}</div>
         </div>`;
     }).join('');
 
@@ -260,16 +267,17 @@ export class FearGreedPanel extends Panel {
         <div style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:2px">${escapeHtml(lbl)}</div>
       </div>`;
 
+    const na = t('components.fearGreed.notAvailable');
     const hdr = [
-      hdrMetric('VIX', d.vix > 0 ? fmt(d.vix, 2) : 'N/A'),
-      hdrMetric('HY Spread', d.hySpread > 0 ? `${fmt(d.hySpread, 2)}%` : 'N/A'),
-      hdrMetric('10Y Yield', d.yield10y > 0 ? `${fmt(d.yield10y, 2)}%` : 'N/A'),
-      hdrMetric('P/C Ratio', d.putCallRatio > 0 ? fmt(d.putCallRatio, 2) : 'N/A'),
-      hdrMetric('% > 200d', d.pctAbove200d ? `${fmt(d.pctAbove200d, 1)}%` : 'N/A'),
-      hdrMetric('CNN F&G', d.cnnFearGreed ? `${Math.round(d.cnnFearGreed)}` : 'N/A'),
-      hdrMetric('AAII Bull', d.aaiiBull ? `${fmt(d.aaiiBull, 1)}%` : 'N/A'),
-      hdrMetric('AAII Bear', d.aaiiBear ? `${fmt(d.aaiiBear, 1)}%` : 'N/A'),
-      hdrMetric('Fed Rate', d.fedRate || 'N/A'),
+      hdrMetric(t('components.fearGreed.metrics.vix'), d.vix > 0 ? fmt(d.vix, 2) : na),
+      hdrMetric(t('components.fearGreed.metrics.hySpread'), d.hySpread > 0 ? `${fmt(d.hySpread, 2)}%` : na),
+      hdrMetric(t('components.fearGreed.metrics.yield10y'), d.yield10y > 0 ? `${fmt(d.yield10y, 2)}%` : na),
+      hdrMetric(t('components.fearGreed.metrics.putCall'), d.putCallRatio > 0 ? fmt(d.putCallRatio, 2) : na),
+      hdrMetric(t('components.fearGreed.metrics.pctAbove200d'), d.pctAbove200d ? `${fmt(d.pctAbove200d, 1)}%` : na),
+      hdrMetric(t('components.fearGreed.metrics.cnnFearGreed'), d.cnnFearGreed ? `${Math.round(d.cnnFearGreed)}` : na),
+      hdrMetric(t('components.fearGreed.metrics.aaiiBull'), d.aaiiBull ? `${fmt(d.aaiiBull, 1)}%` : na),
+      hdrMetric(t('components.fearGreed.metrics.aaiiBear'), d.aaiiBear ? `${fmt(d.aaiiBear, 1)}%` : na),
+      hdrMetric(t('components.fearGreed.metrics.fedRate'), d.fedRate || na),
     ].join('');
 
     const warningsHtml = warnings.length > 0
@@ -291,7 +299,7 @@ export class FearGreedPanel extends Panel {
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.04);border-radius:8px;padding:4px;margin-bottom:12px">
           ${hdr}
         </div>
-        <div style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Category Breakdown</div>
+        <div style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">${escapeHtml(t('components.fearGreed.categoryBreakdown'))}</div>
         ${catRows}
       </div>`;
 

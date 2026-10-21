@@ -11,7 +11,7 @@ export { IDLE_PAUSE_MS } from '../idle';
 // Refresh intervals (ms) - shared across all variants
 export const REFRESH_INTERVALS = {
   feeds: 20 * 60 * 1000,
-  markets: 12 * 60 * 1000,
+  markets: 3 * 60 * 1000, // Sabathier Terminal: the relay reseeds quotes every 5 min, the API caches 5 min
   crypto: 12 * 60 * 1000,
   predictions: 15 * 60 * 1000,
   forecasts: 30 * 60 * 1000,
@@ -56,7 +56,8 @@ export const REFRESH_INTERVALS = {
   gulfEconomies: 10 * 60 * 1000,
   groceryBasket: 6 * 60 * 60 * 1000,
   fuelPrices: 6 * 60 * 60 * 1000,
-  ratesBoard: 60 * 60 * 1000, // the seeder runs about hourly; ECB and Banque de France publish once a business day
+  creditSpreads: 10 * 60 * 1000, // FRED series reseeded by worldmonitor-markets.timer every 10 min
+  ratesBoard: 10 * 60 * 1000, // worldmonitor-markets.timer reseeds it every 10 min
   fx: 6 * 60 * 60 * 1000, // all three FX keys are daily seeds; 6h picks up the new bar without polling a static payload
 
   faoFoodPriceIndex: 24 * 60 * 60 * 1000, // monthly data; refresh daily is sufficient

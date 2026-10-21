@@ -470,6 +470,7 @@ export const FINANCE_PANELS: Record<string, PanelConfig> = {
   forex: { name: 'Forex & Currencies', enabled: true, priority: 1 },
   'fx-majors': { name: 'Major Currencies', enabled: true, priority: 1 },
   'rates-board': { name: 'Rates & Central Banks', enabled: true, priority: 1 },
+  'credit-spreads': { name: 'Credit Spreads', enabled: true, priority: 1 },
   commodities: { name: 'Metals & Materials', enabled: true, priority: 1 },
   'energy-complex': { name: 'Energy Complex', enabled: true, priority: 1 },
   centralbanks: { name: 'Central Bank Watch', enabled: true, priority: 1 },

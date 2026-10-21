@@ -3,7 +3,7 @@
     { "symbol": "^GSPC", "name": "S&P 500", "display": "SPX", "region": "us" },
     { "symbol": "^DJI", "name": "Dow Jones", "display": "DOW", "region": "us" },
     { "symbol": "^IXIC", "name": "NASDAQ Composite", "display": "COMP", "region": "us" },
-    { "symbol": "^VIX", "name": "CBOE Volatility Index", "display": "VIX", "region": "us" },
+    { "symbol": "^VIX", "name": "VIX (CBOE)", "display": "VIX", "region": "us" },
     { "symbol": "AAPL", "name": "Apple", "display": "AAPL", "region": "us" },
     { "symbol": "MSFT", "name": "Microsoft", "display": "MSFT", "region": "us" },
     { "symbol": "NVDA", "name": "NVIDIA", "display": "NVDA", "region": "us" },

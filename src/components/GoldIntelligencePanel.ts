@@ -1,8 +1,9 @@
 import { Panel } from './Panel';
-import { t } from '@/services/i18n';
+import { t, getCurrentLanguage } from '@/services/i18n';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { toApiUrl } from '@/services/runtime';
 import { miniSparkline } from '@/utils/sparkline';
+import { toIso2 } from '@/utils/country-codes';
 
 interface CrossCurrencyPrice { currency: string; flag: string; price: number }
 interface CotCategory { longPositions: string; shortPositions: string; netPct: number; oiSharePct: number; wowNetDelta: string }
@@ -62,6 +63,30 @@ interface GoldIntelligenceData {
   unavailable?: boolean;
 }
 
+const GI = 'components.goldIntelligence';
+
+function gi(key: string, params?: Record<string, unknown>): string {
+  return t(`${GI}.${key}`, params);
+}
+
+const DRIVER_LABEL_KEYS: Record<string, string> = {
+  '^TNX': 'drivers.us10y',
+};
+
+let regionNames: { lang: string; dn: Intl.DisplayNames | null } | null = null;
+
+function countryName(iso3: string, fallback: string): string {
+  const iso2 = toIso2(iso3);
+  if (!iso2) return fallback;
+  const lang = getCurrentLanguage();
+  if (!regionNames || regionNames.lang !== lang) {
+    let dn: Intl.DisplayNames | null = null;
+    try { dn = new Intl.DisplayNames([lang], { type: 'region' }); } catch { dn = null; }
+    regionNames = { lang, dn };
+  }
+  try { return regionNames.dn?.of(iso2) || fallback; } catch { return fallback; }
+}
+
 function fmtPrice(v: number, decimals = 2): string {
   if (!Number.isFinite(v) || v <= 0) return '--';
   return v >= 10000 ? Math.round(v).toLocaleString() : v.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -87,15 +112,15 @@ function fmtSignedInt(raw: string | number): string {
 }
 
 function freshnessLabel(iso: string): { text: string; dot: string } {
-  if (!iso) return { text: 'Updated —', dot: 'var(--text-dim)' };
+  if (!iso) return { text: gi('updated.none'), dot: 'var(--text-dim)' };
   const diffMs = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(diffMs) || diffMs < 0) return { text: 'Updated now', dot: '#2ecc71' };
+  if (!Number.isFinite(diffMs) || diffMs < 0) return { text: gi('updated.now'), dot: '#2ecc71' };
   const mins = Math.floor(diffMs / 60000);
   const dot = mins < 10 ? '#2ecc71' : mins < 30 ? '#f5a623' : '#e74c3c';
-  if (mins < 1) return { text: 'Updated just now', dot };
-  if (mins < 60) return { text: `Updated ${mins}m ago`, dot };
+  if (mins < 1) return { text: gi('updated.justNow'), dot };
+  if (mins < 60) return { text: gi('updated.minutesAgo', { m: mins }), dot };
   const hrs = Math.floor(mins / 60);
-  return { text: `Updated ${hrs}h ago`, dot };
+  return { text: gi('updated.hoursAgo', { h: hrs }), dot };
 }
 
 function renderRangeBar(lo: number, hi: number, current: number, positionPct: number): string {
@@ -105,9 +130,9 @@ function renderRangeBar(lo: number, hi: number, current: number, positionPct: nu
       <div style="position:absolute;top:-3px;bottom:-3px;left:${clamped.toFixed(1)}%;width:3px;background:#fff;border-radius:1px;box-shadow:0 0 4px rgba(255,255,255,0.8);transform:translateX(-50%)"></div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">
-      <span>Low $${escapeHtml(fmtPrice(lo))}</span>
-      <span style="color:var(--text);font-weight:600">$${escapeHtml(fmtPrice(current))} • ${clamped.toFixed(0)}% of range</span>
-      <span>High $${escapeHtml(fmtPrice(hi))}</span>
+      <span>${escapeHtml(gi('returns.low', { price: `$${fmtPrice(lo)}` }))}</span>
+      <span style="color:var(--text);font-weight:600">${escapeHtml(gi('returns.ofRange', { price: `$${fmtPrice(current)}`, pct: clamped.toFixed(0) }))}</span>
+      <span>${escapeHtml(gi('returns.high', { price: `$${fmtPrice(hi)}` }))}</span>
     </div>`;
 }
 
@@ -133,9 +158,9 @@ function renderPositionBar(netPct: number, label: string, wow: string): string {
 }
 
 function ratioLabel(ratio: number): { text: string; color: string } {
-  if (ratio > 80) return { text: 'Silver undervalued', color: '#f5a623' };
-  if (ratio < 60) return { text: 'Gold undervalued', color: '#f5a623' };
-  return { text: 'Neutral', color: 'var(--text-dim)' };
+  if (ratio > 80) return { text: gi('metals.silverUndervalued'), color: '#f5a623' };
+  if (ratio < 60) return { text: gi('metals.goldUndervalued'), color: '#f5a623' };
+  return { text: gi('metals.neutral'), color: 'var(--text-dim)' };
 }
 
 function returnChip(label: string, pct: number): string {
@@ -162,7 +187,7 @@ export class GoldIntelligencePanel extends Panel {
       const data: GoldIntelligenceData = await resp.json();
 
       if (data.unavailable) {
-        if (!this._hasData) this.showError('Gold data unavailable', () => void this.fetchData());
+        if (!this._hasData) this.showError(gi('errors.unavailable'), () => void this.fetchData());
         return false;
       }
 
@@ -173,7 +198,7 @@ export class GoldIntelligencePanel extends Panel {
     } catch (e) {
       if (this.isAbortError(e)) return false;
       if (!this.element?.isConnected) return false;
-      if (!this._hasData) this.showError(e instanceof Error ? e.message : 'Failed to load', () => void this.fetchData());
+      if (!this._hasData) this.showError(e instanceof Error ? e.message : gi('errors.failedToLoad'), () => void this.fetchData());
       return false;
     }
   }
@@ -186,13 +211,13 @@ export class GoldIntelligencePanel extends Panel {
 
     const sessionLine = d.session && d.session.dayHigh > 0
       ? `<div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:2px">
-          Session H $${escapeHtml(fmtPrice(d.session.dayHigh))} • L $${escapeHtml(fmtPrice(d.session.dayLow))} • Prev $${escapeHtml(fmtPrice(d.session.prevClose))}
+          ${escapeHtml(gi('header.session', { high: `$${fmtPrice(d.session.dayHigh)}`, low: `$${fmtPrice(d.session.dayLow)}`, prev: `$${fmtPrice(d.session.prevClose)}` }))}
         </div>`
       : '';
 
     return `
       <div class="energy-tape-section">
-        <div class="energy-section-title">Price &amp; Performance</div>
+        <div class="energy-section-title">${escapeHtml(gi('header.title'))}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <span style="font-size:calc(16px * var(--wm-panel-effective-scale, 1));font-weight:700">$${escapeHtml(fmtPrice(d.goldPrice))}</span>
           <span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));font-weight:600;color:${changeColor};padding:1px 6px;border-radius:3px;background:${changeColor}22">${fmtPct(changePct)}</span>
@@ -200,7 +225,7 @@ export class GoldIntelligencePanel extends Panel {
         </div>
         <div style="display:flex;align-items:center;gap:6px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">
           <span style="width:6px;height:6px;border-radius:50%;background:${fresh.dot};display:inline-block"></span>
-          <span>${escapeHtml(fresh.text)} • GC=F front-month</span>
+          <span>${escapeHtml(fresh.text)} • ${escapeHtml(gi('header.frontMonth', { symbol: 'GC=F' }))}</span>
         </div>
         ${sessionLine}
       </div>`;
@@ -210,20 +235,20 @@ export class GoldIntelligencePanel extends Panel {
     if (!d.returns && !d.range52w) return '';
     const chips = d.returns
       ? `<div style="display:flex;gap:4px;margin-top:6px">
-          ${returnChip('1W', d.returns.w1)}
-          ${returnChip('1M', d.returns.m1)}
-          ${returnChip('Year to date', d.returns.ytd)}
-          ${returnChip('1Y', d.returns.y1)}
+          ${returnChip(gi('returns.w1'), d.returns.w1)}
+          ${returnChip(gi('returns.m1'), d.returns.m1)}
+          ${returnChip(gi('returns.ytd'), d.returns.ytd)}
+          ${returnChip(gi('returns.y1'), d.returns.y1)}
         </div>`
       : '';
     const range = d.range52w && d.range52w.hi > 0
       ? `<div style="margin-top:8px">
-          <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">52-week range</div>
+          <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(gi('returns.range52w'))}</div>
           ${renderRangeBar(d.range52w.lo, d.range52w.hi, d.goldPrice, d.range52w.positionPct)}
         </div>`
       : '';
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">Returns</div>
+      <div class="energy-section-title">${escapeHtml(gi('returns.title'))}</div>
       ${chips}
       ${range}
     </div>`;
@@ -234,7 +259,7 @@ export class GoldIntelligencePanel extends Panel {
       ? (() => {
         const rl = ratioLabel(d.goldSilverRatio!);
         return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">Gold/Silver Ratio</span>
+          <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(gi('metals.goldSilverRatio'))}</span>
           <span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));font-weight:600">${escapeHtml(d.goldSilverRatio!.toFixed(1))} <span style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:${rl.color};font-weight:400">${escapeHtml(rl.text)}</span></span>
         </div>`;
       })()
@@ -242,15 +267,15 @@ export class GoldIntelligencePanel extends Panel {
 
     const premiumHtml = d.goldPlatinumPremiumPct != null && Number.isFinite(d.goldPlatinumPremiumPct)
       ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">Gold vs Platinum</span>
-          <span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));font-weight:600">${escapeHtml(fmtPct(d.goldPlatinumPremiumPct, 1))} premium</span>
+          <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(gi('metals.goldVsPlatinum'))}</span>
+          <span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));font-weight:600">${escapeHtml(gi('metals.premium', { pct: fmtPct(d.goldPlatinumPremiumPct, 1) }))}</span>
         </div>`
       : '';
 
     const tiles = [
-      { label: 'Silver', price: d.silverPrice },
-      { label: 'Platinum', price: d.platinumPrice },
-      { label: 'Palladium', price: d.palladiumPrice },
+      { label: gi('metals.silver'), price: d.silverPrice },
+      { label: gi('metals.platinum'), price: d.platinumPrice },
+      { label: gi('metals.palladium'), price: d.palladiumPrice },
     ].map(m =>
       `<div style="flex:1;text-align:center;padding:4px;background:rgba(255,255,255,0.03);border-radius:4px">
         <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(m.label)}</div>
@@ -258,7 +283,7 @@ export class GoldIntelligencePanel extends Panel {
       </div>`).join('');
 
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">Metals Complex</div>
+      <div class="energy-section-title">${escapeHtml(gi('metals.title'))}</div>
       ${ratioHtml}
       ${premiumHtml}
       <div style="display:flex;gap:6px;margin-top:8px">${tiles}</div>
@@ -273,7 +298,7 @@ export class GoldIntelligencePanel extends Panel {
         <div style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));font-weight:600">${escapeHtml(fmtPrice(c.price, 0))}</div>
       </div>`).join('');
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">Gold in Major Currencies</div>
+      <div class="energy-section-title">${escapeHtml(gi('fx.title'))}</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${rows}</div>
     </div>`;
   }
@@ -283,29 +308,29 @@ export class GoldIntelligencePanel extends Panel {
     if (!c) return '';
     const mm = c.managedMoney;
     const ps = c.producerSwap;
-    const mmBar = mm ? renderPositionBar(mm.netPct, 'Managed Money (speculators)', mm.wowNetDelta) : '';
-    const psBar = ps ? renderPositionBar(ps.netPct, 'Producer/Swap (commercials)', ps.wowNetDelta) : '';
+    const mmBar = mm ? renderPositionBar(mm.netPct, gi('cot.managedMoney'), mm.wowNetDelta) : '';
+    const psBar = ps ? renderPositionBar(ps.netPct, gi('cot.producerSwap'), ps.wowNetDelta) : '';
 
     const detail = (cat: CotCategory | undefined, label: string) => cat
       ? `<div style="display:flex;justify-content:space-between;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);padding:2px 0">
           <span>${escapeHtml(label)}</span>
-          <span>L ${escapeHtml(fmtInt(cat.longPositions))} / S ${escapeHtml(fmtInt(cat.shortPositions))} • ${cat.oiSharePct.toFixed(1)}% OI</span>
+          <span>${escapeHtml(gi('cot.longShort', { long: fmtInt(cat.longPositions), short: fmtInt(cat.shortPositions), oi: cat.oiSharePct.toFixed(1) }))}</span>
         </div>`
       : '';
 
     const releaseLine = c.reportDate
       ? `<div style="display:flex;justify-content:space-between;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:6px">
-          <span>As of ${escapeHtml(c.reportDate)}${c.nextReleaseDate ? ` • next release ${escapeHtml(c.nextReleaseDate)}` : ''}</span>
-          <span>OI ${escapeHtml(fmtInt(c.openInterest))}</span>
+          <span>${escapeHtml(gi('cot.asOf', { date: c.reportDate }))}${c.nextReleaseDate ? escapeHtml(gi('cot.nextRelease', { date: c.nextReleaseDate })) : ''}</span>
+          <span>${escapeHtml(gi('cot.openInterest', { value: fmtInt(c.openInterest) }))}</span>
         </div>`
       : '';
 
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">CFTC Positioning</div>
+      <div class="energy-section-title">${escapeHtml(gi('cot.title'))}</div>
       ${mmBar}
-      ${detail(mm, 'MM breakdown')}
+      ${detail(mm, gi('cot.mmBreakdown'))}
       ${psBar}
-      ${detail(ps, 'P/S breakdown')}
+      ${detail(ps, gi('cot.psBreakdown'))}
       ${releaseLine}
     </div>`;
   }
@@ -315,14 +340,14 @@ export class GoldIntelligencePanel extends Panel {
     if (!cb || !cb.topHolders.length) return '';
 
     const holderRow = (h: CbHolder, rank: number) => `<div style="display:flex;justify-content:space-between;font-size:calc(10px * var(--wm-panel-effective-scale, 1));padding:1px 0">
-      <span style="color:var(--text-dim)">${rank}. ${escapeHtml(h.name)}</span>
+      <span style="color:var(--text-dim)">${rank}. ${escapeHtml(countryName(h.iso3, h.name))}</span>
       <span style="font-weight:600">${h.tonnes > 0 ? `${h.tonnes.toFixed(1)}t` : '—'}</span>
     </div>`;
     const moverRow = (m: CbMover) => {
       const color = m.deltaTonnes12m >= 0 ? '#2ecc71' : '#e74c3c';
       const sign = m.deltaTonnes12m >= 0 ? '+' : '';
       return `<div style="display:flex;justify-content:space-between;font-size:calc(10px * var(--wm-panel-effective-scale, 1));padding:1px 0">
-        <span style="color:var(--text-dim)">${escapeHtml(m.name)}</span>
+        <span style="color:var(--text-dim)">${escapeHtml(countryName(m.iso3, m.name))}</span>
         <span style="color:${color};font-weight:600">${sign}${m.deltaTonnes12m.toFixed(1)}t</span>
       </div>`;
     };
@@ -334,22 +359,22 @@ export class GoldIntelligencePanel extends Panel {
     const moversHtml = (buyers || sellers)
       ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
           <div>
-            <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Buyers 12M</div>
+            <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">${escapeHtml(gi('cb.buyers12m'))}</div>
             ${buyers || '<div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">—</div>'}
           </div>
           <div>
-            <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">Sellers 12M</div>
+            <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);text-transform:uppercase;margin-bottom:2px">${escapeHtml(gi('cb.sellers12m'))}</div>
             ${sellers || '<div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">—</div>'}
           </div>
         </div>`
       : '';
 
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">Central-Bank Reserves</div>
-      <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-bottom:4px">Top holders (tonnes)</div>
+      <div class="energy-section-title">${escapeHtml(gi('cb.title'))}</div>
+      <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-bottom:4px">${escapeHtml(gi('cb.topHolders'))}</div>
       ${holders}
       ${moversHtml}
-      <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:6px;text-align:right">IMF IFS • as of ${escapeHtml(cb.asOfMonth)}</div>
+      <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:6px;text-align:right">${escapeHtml(gi('sourceAsOf', { source: 'IMF IFS', date: cb.asOfMonth }))}</div>
     </div>`;
   }
 
@@ -368,24 +393,24 @@ export class GoldIntelligencePanel extends Panel {
       </div>`;
     };
 
-    const aumStr = f.aumUsd >= 1e9 ? `$${(f.aumUsd / 1e9).toFixed(1)}B` : f.aumUsd > 0 ? `$${(f.aumUsd / 1e6).toFixed(0)}M` : '--';
+    const aumStr = f.aumUsd >= 1e9 ? gi('etf.billionsUsd', { value: (f.aumUsd / 1e9).toFixed(1) }) : f.aumUsd > 0 ? gi('etf.millionsUsd', { value: (f.aumUsd / 1e6).toFixed(0) }) : '--';
     const spark = f.sparkline90d.length > 1 ? miniSparkline(f.sparkline90d, f.changeM1Pct, 80, 20) : '';
 
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">Physical Flows (GLD)</div>
+      <div class="energy-section-title">${escapeHtml(gi('etf.title'))}</div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
         <div>
-          <span style="font-size:calc(14px * var(--wm-panel-effective-scale, 1));font-weight:700">${escapeHtml(f.tonnes.toFixed(1))} <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);font-weight:500">tonnes</span></span>
-          <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-left:6px">AUM ${escapeHtml(aumStr)}${f.nav > 0 ? ` • NAV $${f.nav.toFixed(2)}` : ''}</span>
+          <span style="font-size:calc(14px * var(--wm-panel-effective-scale, 1));font-weight:700">${escapeHtml(f.tonnes.toFixed(1))} <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);font-weight:500">${escapeHtml(gi('etf.tonnes'))}</span></span>
+          <span style="font-size:calc(10px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-left:6px">${escapeHtml(gi('etf.aum', { value: aumStr }))}${f.nav > 0 ? escapeHtml(gi('etf.nav', { value: `$${f.nav.toFixed(2)}` })) : ''}</span>
         </div>
         ${spark}
       </div>
       <div style="display:flex;gap:4px;margin-top:4px">
-        ${chip('1W', f.changeW1Tonnes, f.changeW1Pct)}
-        ${chip('1M', f.changeM1Tonnes, f.changeM1Pct)}
-        ${chip('1Y', f.changeY1Tonnes, f.changeY1Pct)}
+        ${chip(gi('returns.w1'), f.changeW1Tonnes, f.changeW1Pct)}
+        ${chip(gi('returns.m1'), f.changeM1Tonnes, f.changeM1Pct)}
+        ${chip(gi('returns.y1'), f.changeY1Tonnes, f.changeY1Pct)}
       </div>
-      <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:4px;text-align:right">SPDR GLD • as of ${escapeHtml(f.asOfDate)}</div>
+      <div style="font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:4px;text-align:right">${escapeHtml(gi('sourceAsOf', { source: 'SPDR GLD', date: f.asOfDate }))}</div>
     </div>`;
   }
 
@@ -393,18 +418,20 @@ export class GoldIntelligencePanel extends Panel {
     if (!d.drivers?.length) return '';
     const rows = d.drivers.map(dr => {
       const color = dr.changePct >= 0 ? '#2ecc71' : '#e74c3c';
+      const labelKey = DRIVER_LABEL_KEYS[dr.symbol];
+      const label = labelKey ? gi(labelKey) : dr.label;
       const corrColor = dr.correlation30d <= -0.3 ? '#2ecc71' : dr.correlation30d >= 0.3 ? '#e74c3c' : 'var(--text-dim)';
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:calc(10px * var(--wm-panel-effective-scale, 1))">
-        <span style="color:var(--text-dim)">${escapeHtml(dr.label)}</span>
+        <span style="color:var(--text-dim)">${escapeHtml(label)}</span>
         <span>
           <span style="font-weight:600">${escapeHtml(dr.value.toFixed(2))}</span>
           <span style="color:${color};margin-left:4px">${escapeHtml(fmtPct(dr.changePct, 2))}</span>
-          <span style="color:${corrColor};margin-left:8px;font-size:calc(9px * var(--wm-panel-effective-scale, 1))">corr 30d ${dr.correlation30d >= 0 ? '+' : ''}${dr.correlation30d.toFixed(2)}</span>
+          <span style="color:${corrColor};margin-left:8px;font-size:calc(9px * var(--wm-panel-effective-scale, 1))">${escapeHtml(gi('drivers.corr30d', { value: `${dr.correlation30d >= 0 ? '+' : ''}${dr.correlation30d.toFixed(2)}` }))}</span>
         </span>
       </div>`;
     }).join('');
     return `<div class="energy-tape-section" style="margin-top:10px">
-      <div class="energy-section-title">Drivers</div>
+      <div class="energy-section-title">${escapeHtml(gi('drivers.title'))}</div>
       ${rows}
     </div>`;
   }

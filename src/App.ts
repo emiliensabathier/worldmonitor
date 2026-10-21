@@ -89,6 +89,7 @@ import type { BigMacPanel } from '@/components/BigMacPanel';
 import type { FuelPricesPanel } from '@/components/FuelPricesPanel';
 import type { FxPanel } from '@/components/FxPanel';
 import type { RatesBoardPanel } from '@/components/RatesBoardPanel';
+import type { CreditSpreadsPanel } from '@/components/CreditSpreadsPanel';
 import type { FaoFoodPriceIndexPanel } from '@/components/FaoFoodPriceIndexPanel';
 import type { OilInventoriesPanel } from '@/components/OilInventoriesPanel';
 import type { PipelineStatusPanel } from '@/components/PipelineStatusPanel';
@@ -812,6 +813,10 @@ export class App {
     if (shouldPrime('fuel-prices')) {
       const panel = this.state.panels['fuel-prices'] as FuelPricesPanel | undefined;
       if (panel) primeTask('fuel-prices', () => panel.fetchData());
+    }
+    if (shouldPrime('credit-spreads')) {
+      const panel = this.state.panels['credit-spreads'] as CreditSpreadsPanel | undefined;
+      if (panel) primeTask('credit-spreads', () => panel.fetchData());
     }
     if (shouldPrime('rates-board')) {
       const panel = this.state.panels['rates-board'] as RatesBoardPanel | undefined;
@@ -4129,6 +4134,13 @@ export class App {
       () => (this.state.panels['fuel-prices'] as FuelPricesPanel).fetchData(),
       REFRESH_INTERVALS.fuelPrices,
       () => this.isPanelNearViewport('fuel-prices')
+    );
+
+    this.refreshScheduler.scheduleRefresh(
+      'credit-spreads',
+      () => (this.state.panels['credit-spreads'] as CreditSpreadsPanel).fetchData(),
+      REFRESH_INTERVALS.creditSpreads,
+      () => this.isPanelNearViewport('credit-spreads')
     );
 
     this.refreshScheduler.scheduleRefresh(

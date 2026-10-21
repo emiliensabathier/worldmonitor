@@ -2896,7 +2896,12 @@ export class PanelLayoutManager implements AppModule {
       const panelKey = newsPanelKeyForCategory(key, newsPanelKeyLookups);
       if (!panelKey) continue;
       const panelConfig = this.ctx.panelSettings[panelKey];
-      const label = panelConfig?.name ?? key.charAt(0).toUpperCase() + key.slice(1);
+      // A translated title (panels.<camelCaseKey>) when the locale has one, else the configured name.
+      const titleKey = `panels.${panelKey.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())}`;
+      const translated = t(titleKey);
+      const label = translated && translated !== titleKey
+        ? translated
+        : panelConfig?.name ?? key.charAt(0).toUpperCase() + key.slice(1);
       const tooltip = PanelLayoutManager.NEWS_PANEL_TOOLTIPS[panelKey] ?? PanelLayoutManager.NEWS_PANEL_TOOLTIPS[key];
       this.createNewsPanelWithLabel(panelKey, label, tooltip, key);
     }
@@ -3113,6 +3118,9 @@ export class PanelLayoutManager implements AppModule {
     );
     this.lazyPanel('bigmac', () =>
       this.importPanel('bigmac', () => import('@/components/BigMacPanel'), 'BigMacPanel', (BigMacPanel) => new BigMacPanel()),
+    );
+    this.lazyPanel('credit-spreads', () =>
+      this.importPanel('credit-spreads', () => import('@/components/CreditSpreadsPanel'), 'CreditSpreadsPanel', (CreditSpreadsPanel) => new CreditSpreadsPanel()),
     );
     this.lazyPanel('rates-board', () =>
       this.importPanel('rates-board', () => import('@/components/RatesBoardPanel'), 'RatesBoardPanel', (RatesBoardPanel) => new RatesBoardPanel()),

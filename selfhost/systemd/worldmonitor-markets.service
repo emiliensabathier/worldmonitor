@@ -1,0 +1,18 @@
+# Keeps the Sabathier Terminal's market data fresh between the full seeder runs (worldmonitor-seed.timer,
+# about one hour of work every 2 h). Quotes, commodities, sectors and crypto already come from ais-relay
+# every 5 min; this unit reseeds the rates, FX, sentiment and calendars behind the GOVT, FX and ECO screens.
+# Each seeder fails on its own (last good value kept), the next one still runs; rates-board goes last because
+# it reads the FRED series. Install: sudo cp selfhost/systemd/worldmonitor-markets.* /etc/systemd/system/
+[Unit]
+Description=World Monitor market data refresh (emiliensabathier.fr)
+After=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/worldmonitor
+Nice=10
+MemoryMax=768M
+TimeoutStartSec=9min
+ExecStart=/bin/sh -c 'set -a; . ./.env; set +a; export UPSTASH_REDIS_REST_URL=http://localhost:8079 UPSTASH_REDIS_REST_TOKEN="$REDIS_TOKEN"; for s in seed-fred-rates seed-ecb-short-rates seed-ecb-fx-rates seed-fx-rates seed-us-treasury-par-yield seed-yield-curve-eu seed-fear-greed seed-market-breadth seed-economic-calendar seed-earnings-calendar seed-prediction-markets seed-rates-board; do timeout 120 node scripts/$s.mjs >/dev/null 2>&1 && echo "$s ok" || echo "$s skipped ($?)"; done'

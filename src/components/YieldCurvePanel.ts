@@ -13,7 +13,7 @@ async function getEconomicClient(): Promise<EconomicServiceClient> {
   return _client;
 }
 
-type Tab = 'curve' | 'rates';
+type Tab = 'curve' | 'fr' | 'rates';
 
 const SERIES_IDS = ['DGS1MO', 'DGS3MO', 'DGS6MO', 'DGS1', 'DGS2', 'DGS5', 'DGS10', 'DGS30'] as const;
 const TENOR_LABELS = ['1M', '3M', '6M', '1Y', '2Y', '5Y', '10Y', '30Y'];
@@ -80,8 +80,8 @@ function buildYAxisLabels(yMin: number, yMax: number): string {
   return labels.join('');
 }
 
-function buildXAxisLabels(count: number): string {
-  return TENOR_LABELS.slice(0, count).map((label, i) => {
+function buildXAxisLabels(count: number, labels: readonly string[]): string {
+  return labels.slice(0, count).map((label, i) => {
     const x = xPos(i, count);
     const y = SVG_H - MARGIN_B + 12;
     return `<text x="${x.toFixed(2)}" y="${y}" text-anchor="middle" fill="rgba(255,255,255,0.5)" style="font-size:calc(8px * var(--wm-panel-effective-scale, 1))">${escapeHtml(label)}</text>`;
@@ -134,12 +134,12 @@ function buildEcbCircles(ecbRates: Record<string, number>, yMin: number, yMax: n
   }).join('');
 }
 
-function renderChart(current: YieldPoint[], prior: YieldPoint[], ecbRates: Record<string, number> | null): string {
+function renderChart(current: YieldPoint[], prior: YieldPoint[], ecbRates: Record<string, number> | null, labels: readonly string[] = TENOR_LABELS): string {
   const usValues = current.map(p => p.value).filter((v): v is number => v !== null);
   const priorValues = prior.map(p => p.value).filter((v): v is number => v !== null);
   const ecbValues = ecbRates ? Object.values(ecbRates) : [];
   const allValues = [...usValues, ...priorValues, ...ecbValues];
-  if (allValues.length === 0) return '<div style="padding:16px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">No yield data available.</div>';
+  if (allValues.length === 0) return `<div style="padding:16px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.yieldCurve.noData'))}</div>`;
 
   const yMin = Math.max(0, Math.min(...allValues) - 0.25);
   const yMax = Math.max(...allValues) + 0.5;
@@ -155,9 +155,9 @@ function renderChart(current: YieldPoint[], prior: YieldPoint[], ecbRates: Recor
   const ecbDots = ecbRates ? buildEcbCircles(ecbRates, yMin, yMax) : '';
 
   return `
-    <svg viewBox="0 0 ${SVG_W} ${SVG_H}" width="100%" role="img" aria-label="Treasury yield curve by maturity" style="display:block;overflow:visible">
+    <svg viewBox="0 0 ${SVG_W} ${SVG_H}" width="100%" role="img" aria-label="${escapeHtml(t('components.yieldCurve.chartLabel'))}" style="display:block;overflow:visible">
       ${buildYAxisLabels(yMin, yMax)}
-      ${buildXAxisLabels(current.length)}
+      ${buildXAxisLabels(current.length, labels)}
       ${priorLine}
       ${ecbLine}
       <polyline points="${curPoints}" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -204,7 +204,7 @@ function miniRateSparkline(obs: RateObs[], color: string, w = 80, h = 22): strin
 
 function renderRatesTab(rows: RateRow[]): string {
   const hasAny = rows.some(r => r.obs.length > 0);
-  if (!hasAny) return '<div style="padding:16px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">ECB rate data unavailable</div>';
+  if (!hasAny) return `<div style="padding:16px;color:var(--text-dim);font-size:calc(12px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.yieldCurve.ecbUnavailable'))}</div>`;
 
   const items = rows.map(row => {
     const latest = row.obs[row.obs.length - 1];
@@ -223,7 +223,22 @@ function renderRatesTab(rows: RateRow[]): string {
   }).join('');
 
   return `<div style="padding:4px 0">${items}</div>
-    <div style="margin-top:8px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">Source: ECB</div>`;
+    <div style="margin-top:8px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">${escapeHtml(t('components.yieldCurve.sourceEcb'))}</div>`;
+}
+
+/** The French TEC curve from the rates board payload (enveloped or not), when it carries one. */
+function frenchCurve(payload: unknown): { date: string; current: YieldPoint[]; prior: YieldPoint[] } | null {
+  const raw = (payload && typeof payload === 'object' && '_seed' in payload && 'data' in payload)
+    ? (payload as { data: unknown }).data
+    : payload;
+  const curve = (raw as { frCurve?: { date?: unknown; tenors?: unknown } } | null)?.frCurve;
+  if (!curve || typeof curve.date !== 'string' || !Array.isArray(curve.tenors) || curve.tenors.length < 2) return null;
+  const tenors = curve.tenors as Array<{ tenor: string; value: number | null; previous: number | null }>;
+  return {
+    date: curve.date,
+    current: tenors.map((p) => ({ tenor: p.tenor, value: Number.isFinite(p.value) ? p.value : null })),
+    prior: tenors.map((p) => ({ tenor: p.tenor, value: Number.isFinite(p.previous) ? p.previous : null })),
+  };
 }
 
 export class YieldCurvePanel extends Panel {
@@ -233,13 +248,14 @@ export class YieldCurvePanel extends Panel {
   private _prior: YieldPoint[] = [];
   private _ecbRates: Record<string, number> | null = null;
   private _rateRows: RateRow[] = [];
+  private _fr: { date: string; current: YieldPoint[]; prior: YieldPoint[] } | null = null;
 
   constructor() {
-    super({ id: 'yield-curve', title: 'Yield Curve & Rates', showCount: false, infoTooltip: t('components.yieldCurve.infoTooltip') });
+    super({ id: 'yield-curve', title: t('panels.yieldCurve'), showCount: false, infoTooltip: t('components.yieldCurve.infoTooltip') });
 
     this.content.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]');
-      if (btn?.dataset.tab === 'curve' || btn?.dataset.tab === 'rates') {
+      if (btn?.dataset.tab === 'curve' || btn?.dataset.tab === 'fr' || btn?.dataset.tab === 'rates') {
         this._tab = btn.dataset.tab as Tab;
         this._render();
       }
@@ -250,13 +266,16 @@ export class YieldCurvePanel extends Panel {
     this.showLoading();
     try {
       const client = await getEconomicClient();
-      const [fredResp, ecbResp] = await Promise.allSettled([
+      const [fredResp, ecbResp, boardResp] = await Promise.allSettled([
         client.getFredSeriesBatch({
           seriesIds: [...SERIES_IDS, 'ESTR', 'EURIBOR3M', 'EURIBOR6M', 'EURIBOR1Y'],
           limit: 36,
         }),
         client.getEuYieldCurve({}),
+        import('@/services/bootstrap').then(({ ensureHydrated }) => ensureHydrated('ratesBoard')),
       ]);
+      this._fr = boardResp.status === 'fulfilled' ? frenchCurve(boardResp.value) : null;
+      if (this._tab === 'fr' && !this._fr) this._tab = 'curve';
 
       const results = fredResp.status === 'fulfilled' ? (fredResp.value.results ?? {}) : {};
 
@@ -274,7 +293,7 @@ export class YieldCurvePanel extends Panel {
         : null;
 
       this._rateRows = [
-        { id: 'ESTR', label: 'Euro short-term rate', obs: results['ESTR']?.observations ?? [], color: '#2ecc71' },
+        { id: 'ESTR', label: t('components.yieldCurve.estr'), obs: results['ESTR']?.observations ?? [], color: '#2ecc71' },
         { id: 'EURIBOR3M', label: 'EURIBOR 3M', obs: results['EURIBOR3M']?.observations ?? [], color: '#3498db' },
         { id: 'EURIBOR6M', label: 'EURIBOR 6M', obs: results['EURIBOR6M']?.observations ?? [], color: '#9b59b6' },
         { id: 'EURIBOR1Y', label: 'EURIBOR 1Y', obs: results['EURIBOR1Y']?.observations ?? [], color: '#e67e22' },
@@ -282,7 +301,7 @@ export class YieldCurvePanel extends Panel {
 
       const validCount = this._current.filter(p => p.value !== null).length;
       if (validCount === 0) {
-        if (!this._hasData) this.showError('No yield data available', () => void this.fetchData());
+        if (!this._hasData) this.showError(t('components.yieldCurve.noData'), () => void this.fetchData());
         return false;
       }
 
@@ -290,15 +309,16 @@ export class YieldCurvePanel extends Panel {
       this._render();
       return true;
     } catch (e) {
-      if (!this._hasData) this.showError(e instanceof Error ? e.message : 'Failed to load yield curve', () => void this.fetchData());
+      if (!this._hasData) this.showError(e instanceof Error ? e.message : t('components.yieldCurve.loadFailed'), () => void this.fetchData());
       return false;
     }
   }
 
   private _render(): void {
     const tabBar = `<div style="display:flex;gap:4px;margin-bottom:6px">
-      <button class="panel-tab${this._tab === 'curve' ? ' active' : ''}" data-tab="curve" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">US Curve</button>
-      <button class="panel-tab${this._tab === 'rates' ? ' active' : ''}" data-tab="rates" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">ECB Rates</button>
+      <button class="panel-tab${this._tab === 'curve' ? ' active' : ''}" data-tab="curve" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${escapeHtml(t('components.yieldCurve.usCurve'))}</button>
+      ${this._fr ? `<button class="panel-tab${this._tab === 'fr' ? ' active' : ''}" data-tab="fr" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${escapeHtml(t('components.yieldCurve.frCurve'))}</button>` : ''}
+      <button class="panel-tab${this._tab === 'rates' ? ' active' : ''}" data-tab="rates" style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));padding:3px 10px">${escapeHtml(t('components.yieldCurve.ecbRates'))}</button>
     </div>`;
 
     if (this._tab === 'rates') {
@@ -306,22 +326,25 @@ export class YieldCurvePanel extends Panel {
       return;
     }
 
-    const y2 = this._current.find(p => p.tenor === '2Y')?.value ?? null;
-    const y10 = this._current.find(p => p.tenor === '10Y')?.value ?? null;
+    const fr = this._tab === 'fr' ? this._fr : null;
+    const current = fr ? fr.current : this._current;
+    const prior = fr ? fr.prior : this._prior;
+    const y2 = current.find(p => p.tenor === '2Y')?.value ?? null;
+    const y10 = current.find(p => p.tenor === '10Y')?.value ?? null;
     const isInverted = y2 !== null && y10 !== null && y2 > y10;
     const spreadBps = y2 !== null && y10 !== null ? ((y10 - y2) * 100).toFixed(0) : null;
     const spreadSign = spreadBps !== null ? (Number(spreadBps) >= 0 ? '+' : '') : '';
 
     const statusBadge = isInverted
-      ? `<span style="background:#e74c3c;color:#fff;font-size:calc(9px * var(--wm-panel-effective-scale, 1));font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.08em">INVERTED</span>`
-      : `<span style="background:#2ecc71;color:#000;font-size:calc(9px * var(--wm-panel-effective-scale, 1));font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.08em">NORMAL</span>`;
+      ? `<span style="background:#e74c3c;color:#fff;font-size:calc(9px * var(--wm-panel-effective-scale, 1));font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.08em">${escapeHtml(t('components.yieldCurve.inverted'))}</span>`
+      : `<span style="background:#2ecc71;color:#000;font-size:calc(9px * var(--wm-panel-effective-scale, 1));font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.08em">${escapeHtml(t('components.yieldCurve.normal'))}</span>`;
 
     const spreadHtml = spreadBps !== null
-      ? `<span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-left:10px">2Y-10Y Spread: <span style="color:${isInverted ? '#e74c3c' : '#2ecc71'}">${escapeHtml(spreadSign + spreadBps)}bps</span></span>`
+      ? `<span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-left:10px">${escapeHtml(t('components.yieldCurve.spread2s10s'))} <span style="color:${isInverted ? '#e74c3c' : '#2ecc71'}">${escapeHtml(`${spreadSign}${spreadBps} ${t('components.yieldCurve.bp')}`)}</span></span>`
       : '';
 
-    const ecbLegend = this._ecbRates
-      ? `<span><svg width="20" height="4" style="vertical-align:middle"><line x1="0" y1="2" x2="20" y2="2" stroke="#2ecc71" stroke-width="1.5" stroke-dasharray="5,3"/></svg> EU (ECB AAA)</span>`
+    const ecbLegend = this._ecbRates && !fr
+      ? `<span><svg width="20" height="4" style="vertical-align:middle"><line x1="0" y1="2" x2="20" y2="2" stroke="#2ecc71" stroke-width="1.5" stroke-dasharray="5,3"/></svg> ${escapeHtml(t('components.yieldCurve.legendAaa'))}</span>`
       : '';
 
     this.setSafeContent(unsafeRawHtml(`
@@ -330,13 +353,13 @@ export class YieldCurvePanel extends Panel {
         <div style="display:flex;align-items:center;margin-bottom:10px;gap:4px">
           ${statusBadge}${spreadHtml}
         </div>
-        <div style="margin:0 -4px">${renderChart(this._current, this._prior, this._ecbRates)}</div>
-        ${renderTable(this._current)}
+        <div style="margin:0 -4px">${fr ? renderChart(current, prior, null, fr.current.map(p => p.tenor)) : renderChart(current, prior, this._ecbRates)}</div>
+        ${renderTable(current)}
         <div style="margin-top:8px;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <span><svg width="20" height="4" style="vertical-align:middle"><line x1="0" y1="2" x2="20" y2="2" stroke="#3498db" stroke-width="2"/></svg> US (Current)</span>
-          <span><svg width="20" height="4" style="vertical-align:middle"><line x1="0" y1="2" x2="20" y2="2" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4,3"/></svg> US (Prior)</span>
+          <span><svg width="20" height="4" style="vertical-align:middle"><line x1="0" y1="2" x2="20" y2="2" stroke="#3498db" stroke-width="2"/></svg> ${escapeHtml(t(fr ? 'components.yieldCurve.legendFrCurrent' : 'components.yieldCurve.legendUsCurrent', { date: fr?.date ?? '' }))}</span>
+          <span><svg width="20" height="4" style="vertical-align:middle"><line x1="0" y1="2" x2="20" y2="2" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4,3"/></svg> ${escapeHtml(t(fr ? 'components.yieldCurve.legendFrPrior' : 'components.yieldCurve.legendUsPrior'))}</span>
           ${ecbLegend}
-          <span style="margin-left:auto">Source: FRED / ECB</span>
+          <span style="margin-left:auto">${escapeHtml(t(fr ? 'components.yieldCurve.sourceBdf' : 'components.yieldCurve.sourceFredEcb'))}</span>
         </div>
       </div>`, 'legacy Panel.setContent() migration'));
   }

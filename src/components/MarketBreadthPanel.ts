@@ -1,5 +1,5 @@
 import { Panel } from './Panel';
-import { t } from '@/services/i18n';
+import { t, getLocale } from '@/services/i18n';
 import { escapeHtml, unsafeRawHtml } from '@/utils/sanitize';
 import { getHydratedData } from '@/services/bootstrap';
 
@@ -72,10 +72,12 @@ const CH = SVG_H - MT - MB;
 type NumericSeriesKey = 'pctAbove20d' | 'pctAbove50d' | 'pctAbove200d';
 type SeriesRun = Array<{ x: number; y: number }>;
 
-const SERIES: { key: NumericSeriesKey; color: string; label: string; fillOpacity: number }[] = [
-  { key: 'pctAbove20d',  color: '#3b82f6', label: 'Stocks above 20-day moving average (%)', fillOpacity: 0.08 },
-  { key: 'pctAbove50d',  color: '#f59e0b', label: 'Stocks above 50-day moving average (%)', fillOpacity: 0.06 },
-  { key: 'pctAbove200d', color: '#22c55e', label: 'Stocks above 200-day moving average (%)', fillOpacity: 0.04 },
+// `labelKey` is resolved with t() at render time so a language switch is
+// picked up without rebuilding this table.
+const SERIES: { key: NumericSeriesKey; color: string; labelKey: string; fillOpacity: number }[] = [
+  { key: 'pctAbove20d',  color: '#3b82f6', labelKey: 'components.marketBreadth.above20d', fillOpacity: 0.08 },
+  { key: 'pctAbove50d',  color: '#f59e0b', labelKey: 'components.marketBreadth.above50d', fillOpacity: 0.06 },
+  { key: 'pctAbove200d', color: '#22c55e', labelKey: 'components.marketBreadth.above200d', fillOpacity: 0.04 },
 ];
 
 function xPos(i: number, total: number): number {
@@ -126,7 +128,7 @@ function runToPolylinePoints(run: SeriesRun): string {
 }
 
 function buildChart(points: BreadthSnapshot[]): string {
-  if (points.length < 2) return '<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:calc(11px * var(--wm-panel-effective-scale, 1))">Collecting data. Chart appears after 2+ days.</div>';
+  if (points.length < 2) return `<div style="text-align:center;color:var(--text-dim);padding:20px;font-size:calc(11px * var(--wm-panel-effective-scale, 1))">${escapeHtml(t('components.marketBreadth.collecting'))}</div>`;
 
   const yAxis = [0, 25, 50, 75, 100].map(v => {
     const y = yPos(v);
@@ -170,7 +172,7 @@ function buildChart(points: BreadthSnapshot[]): string {
   const midLine = yPos(50);
   const mid = `<line x1="${ML}" y1="${midLine.toFixed(1)}" x2="${SVG_W - MR}" y2="${midLine.toFixed(1)}" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="4 3"/>`;
 
-  return `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Market breadth: advancing versus declining issues over time" style="width:100%;height:auto;display:block">${yAxis}${mid}${xAxis}${areas}${lines}</svg>`;
+  return `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(t('components.marketBreadth.chartAria'))}" style="width:100%;height:auto;display:block">${yAxis}${mid}${xAxis}${areas}${lines}</svg>`;
 }
 
 function readingBadge(val: number, color: string): string {
@@ -186,7 +188,7 @@ export class MarketBreadthPanel extends Panel {
   private data: BreadthData | null = null;
 
   constructor() {
-    super({ id: 'market-breadth', title: t('panels.marketBreadth'), showCount: false, infoTooltip: 'Percentage of S&P 500 stocks trading above their 20, 50, and 200-day simple moving averages. A measure of market participation and internal strength.' });
+    super({ id: 'market-breadth', title: t('panels.marketBreadth'), showCount: false, infoTooltip: t('components.marketBreadth.infoTooltip') });
   }
 
   public async fetchData(): Promise<boolean> {
@@ -247,7 +249,7 @@ export class MarketBreadthPanel extends Panel {
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
         <span style="display:flex;align-items:center;gap:6px;font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">
           <span style="width:8px;height:3px;border-radius:1px;background:${s.color}"></span>
-          ${escapeHtml(s.label)}
+          ${escapeHtml(t(s.labelKey))}
         </span>
         ${hasCurrent ? readingBadge(val as number, s.color) : '<span style="font-size:calc(11px * var(--wm-panel-effective-scale, 1));color:var(--text-dim)">\u2014</span>'}
       </div>`;
@@ -257,7 +259,7 @@ export class MarketBreadthPanel extends Panel {
       <div style="padding:12px 14px">
         <div style="margin-bottom:8px">${legend}</div>
         <div style="border-radius:6px;background:rgba(255,255,255,0.02);padding:4px 0">${chart}</div>
-        ${d.updatedAt ? `<div style="text-align:right;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:4px">${escapeHtml(new Date(d.updatedAt).toLocaleString())}</div>` : ''}
+        ${d.updatedAt ? `<div style="text-align:right;font-size:calc(9px * var(--wm-panel-effective-scale, 1));color:var(--text-dim);margin-top:4px">${escapeHtml(new Date(d.updatedAt).toLocaleString(getLocale()))}</div>` : ''}
       </div>`;
 
     this.setSafeContent(unsafeRawHtml(html, 'legacy Panel.setContent() migration'));

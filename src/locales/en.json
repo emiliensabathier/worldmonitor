@@ -453,6 +453,12 @@
     "panelCatHappyPlanet": "Planet & Giving"
   },
   "panels": {
+    "economicCalendar": "Economic Calendar",
+    "macroTiles": "Macro Indicators",
+    "economicNews": "Economic news",
+    "marketsNews": "Markets news",
+    "creditSpreads": "Credit spreads",
+    "yieldCurve": "Yield curves",
     "liveNews": "Live News",
     "markets": "Markets",
     "fxMajors": "Major currencies",
@@ -929,6 +935,94 @@
     }
   },
   "components": {
+    "fearGreed": {
+      "infoTooltip": "Composite sentiment index: 10 weighted categories (volatility, positioning, breadth, momentum, liquidity, credit, macro, cross-asset, sentiment, trend).",
+      "notAvailable": "N/A",
+      "vsPrev": "{{delta}} vs prev",
+      "categoryBreakdown": "Category Breakdown",
+      "degraded": "degraded",
+      "weightContribution": "{{weight}}% weight · +{{contrib}} pts",
+      "labels": {
+        "extremeFear": "Extreme Fear",
+        "fear": "Fear",
+        "neutral": "Neutral",
+        "greed": "Greed",
+        "extremeGreed": "Extreme Greed"
+      },
+      "regime": {
+        "crisis": "Crisis / Risk-Off",
+        "stressed": "Stressed / Defensive",
+        "fragile": "Fragile / Hedged",
+        "stable": "Stable / Normal",
+        "strong": "Strong / Risk-On"
+      },
+      "stance": {
+        "cash": "CASH",
+        "defensive": "DEFENSIVE",
+        "hedged": "HEDGED",
+        "normal": "NORMAL",
+        "aggressive": "AGGRESSIVE"
+      },
+      "warnings": {
+        "momentumLow": "Momentum at extreme low — broad equity selling pressure",
+        "sentimentFear": "Sentiment in extreme fear zone",
+        "cnnDivergence": "CNN F&G {{cnn}} diverges {{gap}}pts from composite — sentiment/structural disconnect",
+        "trendBreakdown": "Trend in breakdown — price structure deteriorating"
+      },
+      "metrics": {
+        "vix": "VIX",
+        "hySpread": "HY Spread",
+        "yield10y": "10Y Yield",
+        "putCall": "P/C Ratio",
+        "pctAbove200d": "% > 200d",
+        "cnnFearGreed": "CNN F&G",
+        "aaiiBull": "AAII Bull",
+        "aaiiBear": "AAII Bear",
+        "fedRate": "Fed Rate"
+      },
+      "categories": {
+        "sentiment": "Sentiment",
+        "volatility": "Volatility",
+        "positioning": "Positioning",
+        "trend": "Trend",
+        "breadth": "Breadth",
+        "momentum": "Momentum",
+        "liquidity": "Liquidity",
+        "credit": "Credit",
+        "macro": "Macro",
+        "crossAsset": "Cross-Asset"
+      }
+    },
+    "marketBreadth": {
+      "infoTooltip": "Percentage of S&P 500 stocks trading above their 20, 50, and 200-day simple moving averages. A measure of market participation and internal strength.",
+      "above20d": "Stocks above 20-day moving average (%)",
+      "above50d": "Stocks above 50-day moving average (%)",
+      "above200d": "Stocks above 200-day moving average (%)",
+      "collecting": "Collecting data. Chart appears after 2+ days.",
+      "chartAria": "Market breadth: share of S&P 500 stocks above their moving averages over time"
+    },
+    "creditSpreads": {
+      "infoTooltip": "<strong>Credit spreads</strong> Option-adjusted spreads of US investment-grade and high-yield corporate bonds over Treasuries (ICE BofA indices, via FRED), in basis points: day and one-month moves, and where today's level sits between the low and high of the past year. Wider spreads signal more credit stress.",
+      "unavailable": "Credit spread data unavailable",
+      "ig": "IG",
+      "hy": "HY",
+      "igLong": "US investment grade",
+      "hyLong": "US high yield",
+      "index": "Index",
+      "trend": "6 mo",
+      "oas": "OAS bp",
+      "day": "1d",
+      "month": "1m",
+      "rank": "1y range",
+      "date": "Date",
+      "footer": "ICE BofA option-adjusted spreads over Treasuries · FRED · a widening (red) means more credit stress"
+    },
+    "financeLabs": {
+      "report": "Report",
+      "source": "Source",
+      "unavailable": "Labs data unavailable",
+      "infoTooltip": "Headline results of six reproducible quantitative finance studies by Emilien Sabathier: term premium, implied growth, default scores, allocation rules and implied volatility."
+    },
     "webcams": {
       "paused": "Webcams paused",
       "play": "Play",
@@ -1057,7 +1151,68 @@
       "noData": "Energy data temporarily unavailable - will retry",
       "liveTape": "Live Tape",
       "liveTapeSource": "Market quotes",
-      "infoTooltip": "<strong>Energy Complex</strong> Physical and tradeable energy signals in one place:<ul><li><strong>US Energy Information Administration metrics</strong>: WTI, Brent, US production, and inventories</li><li><strong>Live tape</strong>: Tradeable energy prices like crude and natural gas</li><li><strong>Purpose</strong>: Separate physical energy stress from broader macro and commodity panels</li></ul>"
+      "infoTooltip": "<strong>Energy Complex</strong> Physical and tradeable energy signals in one place:<ul><li><strong>US Energy Information Administration metrics</strong>: WTI, Brent, US production, and inventories</li><li><strong>Live tape</strong>: Tradeable energy prices like crude and natural gas</li><li><strong>Purpose</strong>: Separate physical energy stress from broader macro and commodity panels</li></ul>",
+      "metrics": {
+        "wti": "WTI Crude Oil",
+        "brent": "Brent Crude Oil",
+        "production": "US Crude Production",
+        "inventory": "US Crude Inventories"
+      },
+      "units": {
+        "usdPerBarrel": "$/barrel"
+      },
+      "tape": {
+        "oil": "OIL",
+        "brent": "BRENT",
+        "natgas": "NATGAS"
+      },
+      "euTrend": {
+        "stable": "stable",
+        "injecting": "injecting",
+        "withdrawing": "withdrawing"
+      },
+      "crude": {
+        "title": "US Crude Inventories (Mb)"
+      },
+      "natGas": {
+        "title": "US Nat Gas Storage (Bcf)",
+        "unit": "Bcf"
+      },
+      "euGas": {
+        "title": "EU Gas Storage (Fill %)",
+        "change1d": "{{value}}% 1d"
+      },
+      "wow": "{{value}} WoW",
+      "oilStocks": {
+        "title": "IEA Oil Stocks — Days of Cover",
+        "colCountry": "Ctry",
+        "colDays": "Days",
+        "colVs90": "vs 90d",
+        "daysValue": "{{days}} d",
+        "netExporter": "Net Exporter",
+        "below90": "Below 90d",
+        "belowCount_one": "{{count}} below 90d",
+        "belowCount_other": "{{count}} below 90d",
+        "avgMin": "avg {{avg}}d / min {{min}}d",
+        "avgSuffix": ", avg {{avg}}d",
+        "netExporters_one": "{{count}} net exporter",
+        "netExporters_other": "{{count}} net exporters",
+        "regions": {
+          "europe": "Europe",
+          "asiaPacific": "Asia-Pacific",
+          "northAmerica": "North America"
+        }
+      },
+      "lng": {
+        "title": "LNG Vulnerability",
+        "colCountry": "Country",
+        "colShare": "LNG Share",
+        "colImports": "LNG Imports"
+      },
+      "dataSource": "Data: {{month}} ({{source}})",
+      "sources": {
+        "iea": "IEA"
+      }
     },
     "supplyChain": {
       "chokepoints": "Chokepoints",
@@ -1167,7 +1322,80 @@
         "countSingular": "country",
         "countPlural": "countries"
       },
-      "infoTooltip": "<strong>Consumer prices</strong> Live grocery baskets, weekly changes, category trends, price movers and differences between retailers. The world view uses annual inflation from the International Monetary Fund World Economic Outlook."
+      "infoTooltip": "<strong>Consumer prices</strong> Live grocery baskets, weekly changes, category trends, price movers and differences between retailers. The world view uses annual inflation from the International Monetary Fund World Economic Outlook.",
+      "markets": {
+        "all": "All"
+      },
+      "pressure": {
+        "stable": "Stable",
+        "rising": "Rising",
+        "mildRise": "Mild Rise",
+        "easing": "Easing"
+      },
+      "freshness": {
+        "unknown": "Unknown",
+        "minutesAgo": "{{n}}m ago",
+        "hoursAgo": "{{n}}h ago",
+        "daysAgo": "{{n}}d ago"
+      },
+      "seeding": {
+        "title": "Data collection in progress",
+        "sub": "Retail prices are being aggregated — check back in a few hours."
+      },
+      "filter": {
+        "filtered": "Filtered:",
+        "clear": "Clear category filter"
+      },
+      "global": {
+        "loading": "Loading global data…",
+        "pending": "Pending data",
+        "market": "Market",
+        "index": "Index",
+        "wow": "WoW",
+        "spread": "Spread",
+        "updated": "Updated",
+        "hint": "Tap a market row to drill in"
+      },
+      "overview": {
+        "noData": "No price data available yet",
+        "essentialsBasket": "Essentials Basket",
+        "valueBasket": "Value Basket",
+        "indexBase": "Index (base 100)",
+        "wow": "Week-over-Week",
+        "mom": "Month-over-Month",
+        "retailerSpread": "Retailer Spread",
+        "cheapestVsMost": "Cheapest vs most exp.",
+        "coverage": "Coverage",
+        "topMovers": "Top Category Movers"
+      },
+      "categoriesTable": {
+        "noData": "No category data yet",
+        "category": "Category",
+        "wow": "WoW",
+        "momChange": "Month-over-month change",
+        "trend": "Trend",
+        "coverage": "Coverage",
+        "trendLabel": "{{name}} price trend"
+      },
+      "moversList": {
+        "noData": "No price movement data yet",
+        "noneForSelection": "No movers for this selection",
+        "rising": "Rising",
+        "falling": "Falling",
+        "none": "None"
+      },
+      "spreadList": {
+        "noData": "Retailer comparison starts once data is collected",
+        "spread": "Spread:",
+        "cheapest": "Cheapest",
+        "items": "{{n}} items"
+      },
+      "healthList": {
+        "noData": "Health data not yet available",
+        "overallFreshness": "Overall freshness:",
+        "stalled": "{{n}} stalled",
+        "parseRate": "{{pct}}% parse"
+      }
     },
     "gdelt": {
       "empty": "No recent articles for this topic"
@@ -2127,7 +2355,40 @@
         "momentum": "Momentum",
         "fearGreed": "Fear & Greed"
       },
-      "infoTooltip": "<strong>Bitcoin market conditions</strong> Composite signal dashboard for Bitcoin positioning and risk appetite:<ul><li><strong>Liquidity</strong>: Net Fed liquidity proxy</li><li><strong>Flow</strong>: BTC vs QQQ 5-day returns</li><li><strong>Regime</strong>: QQQ vs XLP rotation (risk-on/off)</li><li><strong>BTC Trend</strong>: Price vs SMA50/200, Mayer Multiple</li><li><strong>Hash Rate</strong>: 30-day network hash change</li><li><strong>Fear & Greed</strong>: Market sentiment index</li></ul>This panel is for regime and positioning, not broad macro data."
+      "infoTooltip": "<strong>Bitcoin market conditions</strong> Composite signal dashboard for Bitcoin positioning and risk appetite:<ul><li><strong>Liquidity</strong>: Net Fed liquidity proxy</li><li><strong>Flow</strong>: BTC vs QQQ 5-day returns</li><li><strong>Regime</strong>: QQQ vs XLP rotation (risk-on/off)</li><li><strong>BTC Trend</strong>: Price vs SMA50/200, Mayer Multiple</li><li><strong>Hash Rate</strong>: 30-day network hash change</li><li><strong>Fear & Greed</strong>: Market sentiment index</li></ul>This panel is for regime and positioning, not broad macro data.",
+      "notAvailable": "N/A",
+      "fgAriaLabel": "Fear and greed index: {{value}}",
+      "detail": {
+        "jpyRoc30d": "JPY 30d ROC",
+        "returns5d": "5d returns",
+        "roc20d": "20d ROC",
+        "trend": "SMA50: {{sma50}} | VWAP: {{vwap}} | Mayer: {{mayer}}",
+        "change30d": "30d change",
+        "mayerMultiple": "Mayer Multiple"
+      },
+      "status": {
+        "bullish": "BULLISH",
+        "bearish": "BEARISH",
+        "neutral": "NEUTRAL",
+        "riskOn": "RISK-ON",
+        "defensive": "DEFENSIVE",
+        "growing": "GROWING",
+        "declining": "DECLINING",
+        "stable": "STABLE",
+        "profitable": "PROFITABLE",
+        "aligned": "ALIGNED",
+        "passiveGap": "PASSIVE GAP",
+        "normal": "NORMAL",
+        "squeeze": "SQUEEZE",
+        "strong": "STRONG",
+        "moderate": "MODERATE",
+        "weak": "WEAK",
+        "unknown": "UNKNOWN",
+        "extremeGreed": "Extreme Greed",
+        "greed": "Greed",
+        "fear": "Fear",
+        "extremeFear": "Extreme Fear"
+      }
     },
     "forecast": {
       "infoTooltip": "<strong>AI Forecasts</strong> AI-generated probability estimates for geopolitical and economic events:<ul><li>Cross-domain coverage: conflict, markets, supply chain, cyber, political</li><li>Each forecast shows estimated probability, confidence level, and time horizon</li></ul>Forecasts update as new intelligence signals arrive. Filter by domain using the tabs above.",
@@ -2231,7 +2492,20 @@
       "sources": "Sources: {{sources}}"
     },
     "fxMajors": {
-      "infoTooltip": "<strong>Major currencies</strong> EUR/USD, GBP/USD, USD/JPY and the other majors, plus the dollar index (DXY): rate, day change and recent trend, from seeded Yahoo Finance quotes. Click a pair for its chart."
+      "infoTooltip": "<strong>Major currencies</strong> EUR/USD, GBP/USD, USD/JPY and the other majors, plus the dollar index (DXY): rate, day change and recent trend, from seeded Yahoo Finance quotes. Click a pair for its chart.",
+      "names": {
+        "EUR_USD": "Euro / US dollar",
+        "GBP_USD": "Pound sterling / US dollar",
+        "USD_JPY": "US dollar / Japanese yen",
+        "USD_CHF": "US dollar / Swiss franc",
+        "AUD_USD": "Australian dollar / US dollar",
+        "USD_CAD": "US dollar / Canadian dollar",
+        "USD_CNY": "US dollar / Chinese yuan",
+        "EUR_GBP": "Euro / pound sterling",
+        "EUR_CHF": "Euro / Swiss franc",
+        "EUR_JPY": "Euro / Japanese yen",
+        "DXY": "US dollar index"
+      }
     },
     "markets": {
       "infoTooltip": "<strong>Markets</strong> Delayed or seeded stock indices, equities, and crypto prices. Customize your watchlist with the Watchlist button. Sparklines show recent price trend.",
@@ -2252,7 +2526,35 @@
       }
     },
     "heatmap": {
-      "infoTooltip": "<strong>Sector Heatmap</strong> S&P 500 sector performance at a glance. Color intensity reflects the magnitude of daily change. Green = gains, Red = losses."
+      "infoTooltip": "<strong>Sector Heatmap</strong> S&P 500 sector performance at a glance. Color intensity reflects the magnitude of daily change. Green = gains, Red = losses.",
+      "tabs": {
+        "performance": "Performance",
+        "valuations": "Valuations"
+      },
+      "sectors": {
+        "XLK": "Technology",
+        "XLF": "Financials",
+        "XLE": "Energy",
+        "XLV": "Health Care",
+        "XLY": "Consumer Disc.",
+        "XLI": "Industrials",
+        "XLP": "Con. Staples",
+        "XLU": "Utilities",
+        "XLB": "Materials",
+        "XLRE": "Real Estate",
+        "XLC": "Comm. Svcs",
+        "SMH": "Semiconductors"
+      },
+      "noValuations": "No valuation data available",
+      "stale": "(stale)",
+      "staleTitle": "Last known value; not refreshed this cycle",
+      "columns": {
+        "sector": "Sector",
+        "trailingPE": "Trail P/E",
+        "forwardPE": "Fwd P/E",
+        "beta": "Beta",
+        "ytd": "Year to date"
+      }
     },
     "commodities": {
       "infoTooltip": "<strong>Commodities</strong> Tradeable non-energy commodity tape focused on metals and materials. Energy prices live in Energy Complex; macro stress indicators live in Macro Stress.",
@@ -2276,12 +2578,46 @@
           "insufficientHistory": "Warming up: {{count}} / {{required}} trading points",
           "staleInput": "Physical benchmark is stale",
           "missingInput": "Divergence signal unavailable"
-        }
+        },
+        "fiveDayShort": "5d",
+        "twentyDayShort": "20d"
       },
       "metals": {
         "gold": "Gold",
         "silver": "Silver"
-      }
+      },
+      "tabs": {
+        "eurFx": "EUR FX"
+      },
+      "names": {
+        "GC_F": "GOLD",
+        "SI_F": "SILVER",
+        "HG_F": "COPPER",
+        "PL_F": "PLATINUM",
+        "PA_F": "PALLADIUM",
+        "ALI_F": "ALUMINUM",
+        "CL_F": "OIL",
+        "BZ_F": "BRENT",
+        "NG_F": "NATGAS",
+        "TTF_F": "TTF GAS",
+        "RB_F": "GASOLINE",
+        "HO_F": "HEATING OIL",
+        "URA": "URANIUM",
+        "LIT": "LITHIUM",
+        "MTF_F": "COAL",
+        "ZW_F": "WHEAT",
+        "ZC_F": "CORN",
+        "ZS_F": "SOYBEANS",
+        "ZR_F": "RICE",
+        "KC_F": "COFFEE",
+        "SB_F": "SUGAR",
+        "CC_F": "COCOA",
+        "CT_F": "COTTON"
+      },
+      "goldUnavailable": "Gold price unavailable",
+      "fxUnavailable": "FX rates unavailable",
+      "xauSource": "Computed from GC=F + Yahoo FX",
+      "ecbSource": "Source: ECB"
     },
     "crypto": {
       "infoTooltip": "<strong>Crypto</strong> Live prices, 24h changes, and volume for major cryptocurrencies. Data sourced from CoinGecko."
@@ -2483,7 +2819,80 @@
       "footer": "5min · Hyperliquid perps · 24/7"
     },
     "goldIntelligence": {
-      "infoTooltip": "<strong>Gold intelligence</strong> Gold prices in several currencies, gold/silver and gold/platinum ratios, and managed-money futures positions. Sources include Yahoo Finance and the Commodity Futures Trading Commission."
+      "infoTooltip": "<strong>Gold intelligence</strong> Gold prices in several currencies, gold/silver and gold/platinum ratios, and managed-money futures positions. Sources include Yahoo Finance and the Commodity Futures Trading Commission.",
+      "errors": {
+        "unavailable": "Gold data unavailable",
+        "failedToLoad": "Failed to load"
+      },
+      "updated": {
+        "none": "Updated —",
+        "now": "Updated now",
+        "justNow": "Updated just now",
+        "minutesAgo": "Updated {{m}}m ago",
+        "hoursAgo": "Updated {{h}}h ago"
+      },
+      "header": {
+        "title": "Price & Performance",
+        "frontMonth": "{{symbol}} front-month",
+        "session": "Session H {{high}} • L {{low}} • Prev {{prev}}"
+      },
+      "returns": {
+        "title": "Returns",
+        "w1": "1W",
+        "m1": "1M",
+        "ytd": "Year to date",
+        "y1": "1Y",
+        "range52w": "52-week range",
+        "low": "Low {{price}}",
+        "high": "High {{price}}",
+        "ofRange": "{{price}} • {{pct}}% of range"
+      },
+      "metals": {
+        "title": "Metals Complex",
+        "goldSilverRatio": "Gold/Silver Ratio",
+        "silverUndervalued": "Silver undervalued",
+        "goldUndervalued": "Gold undervalued",
+        "neutral": "Neutral",
+        "goldVsPlatinum": "Gold vs Platinum",
+        "premium": "{{pct}} premium",
+        "silver": "Silver",
+        "platinum": "Platinum",
+        "palladium": "Palladium"
+      },
+      "fx": {
+        "title": "Gold in Major Currencies"
+      },
+      "cot": {
+        "title": "CFTC Positioning",
+        "managedMoney": "Managed Money (speculators)",
+        "producerSwap": "Producer/Swap (commercials)",
+        "mmBreakdown": "MM breakdown",
+        "psBreakdown": "P/S breakdown",
+        "longShort": "L {{long}} / S {{short}} • {{oi}}% OI",
+        "asOf": "As of {{date}}",
+        "nextRelease": " • next release {{date}}",
+        "openInterest": "OI {{value}}"
+      },
+      "etf": {
+        "title": "Physical Flows (GLD)",
+        "tonnes": "tonnes",
+        "aum": "AUM {{value}}",
+        "nav": " • NAV {{value}}",
+        "billionsUsd": "${{value}}B",
+        "millionsUsd": "${{value}}M"
+      },
+      "cb": {
+        "title": "Central-Bank Reserves",
+        "topHolders": "Top holders (tonnes)",
+        "buyers12m": "Buyers 12M",
+        "sellers12m": "Sellers 12M"
+      },
+      "sourceAsOf": "{{source}} • as of {{date}}",
+      "drivers": {
+        "title": "Drivers",
+        "corr30d": "corr 30d {{value}}",
+        "us10y": "US 10Y Yield"
+      }
     },
     "counters": {
       "infoTooltip": "<strong>Live Counters</strong> Real-time extrapolated counters for global metrics: military spending, natural disasters, disease burden, and more. Figures are statistical estimates based on annual data rates."
@@ -2526,9 +2935,9 @@
       "today": "TODAY · {{date}}",
       "tomorrow": "TOMORROW · {{date}}",
       "epsActual": "earnings per share {{value}}",
-      "epsEstimate": "earnings per share est {{value}}",
+      "epsEstimate": "earnings per share est. {{value}}",
       "revenueActual": "{{value}} rev",
-      "revenueEstimate": "{{value}} est",
+      "revenueEstimate": "{{value}} est.",
       "surprise": {
         "beat": "BEAT",
         "miss": "MISS",
@@ -2537,10 +2946,33 @@
       "errors": {
         "noData": "No earnings data",
         "failedToLoad": "Failed to load"
-      }
+      },
+      "hour": {
+        "bmo": "Before market open",
+        "amc": "After market close"
+      },
+      "unknownDate": "Date unknown"
     },
     "economicCalendar": {
-      "infoTooltip": "<strong>Economic Calendar</strong> Scheduled macroeconomic releases: consumer price index, nonfarm payrolls, gross domestic product, purchasing managers index, and central bank decisions. Shows forecast vs actual vs prior. High-impact events highlighted. Source: economic data providers."
+      "infoTooltip": "<strong>Economic Calendar</strong> Scheduled macroeconomic releases: consumer price index, nonfarm payrolls, gross domestic product, purchasing managers index, and central bank decisions. Shows forecast vs actual vs prior. High-impact events highlighted. Source: economic data providers.",
+      "loading": "Loading economic calendar...",
+      "unavailable": "Economic calendar data unavailable.",
+      "failed": "Failed to load economic calendar.",
+      "noEvents": "No upcoming economic events",
+      "noEventsRegion": "No events for selected region",
+      "event": "Event",
+      "unknownDate": "Unknown",
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "daysAgo": "{{count}}d ago",
+      "weeksAgo": "{{count}}w ago",
+      "inDays": "in {{count}}d",
+      "inWeeks": "in {{count}}w",
+      "regions": {
+        "all": "All",
+        "us": "US",
+        "eu": "EU"
+      }
     },
     "fsi": {
       "infoTooltip": "<strong>Financial Stress Indicator</strong> WorldMonitor ratio of high-yield credit to long Treasuries, adjusted for equity volatility and the high-yield spread: (HYG / TLT) / (VIX × High-yield spread / 100). This is not the Kansas City Fed Financial Stress Index. A reading of 1.5 or higher is low stress; below 0.3 is high stress.",
@@ -2624,7 +3056,94 @@
       "infoTooltip": "<strong>Live Webcams</strong> Live feeds from geopolitically significant locations worldwide: conflict zones, capital cities, border crossings, and strategic chokepoints. Streams sourced from YouTube and public networks."
     },
     "macroTiles": {
-      "infoTooltip": "<strong>Macro indicators</strong> US, euro area and China prices, activity, policy and currency indicators. China requires current coverage. Each tile shows its source and observation date."
+      "infoTooltip": "<strong>Macro indicators</strong> US, euro area and China prices, activity, policy and currency indicators. China requires current coverage. Each tile shows its source and observation date.",
+      "notAvailable": "N/A",
+      "vsPrior": "{{delta}} vs prior",
+      "unavailable": "Macro data unavailable",
+      "unemployment": "Unemployment",
+      "tabsAria": "Macro economy",
+      "tabs": {
+        "us": "US",
+        "eu": "Euro Area",
+        "cn": "China"
+      },
+      "units": {
+        "usdBillions": "${{value}}B",
+        "billions": "{{value}}B"
+      },
+      "us": {
+        "cpi": "Consumer price inflation (annual)",
+        "gdp": "Economic output (billions)",
+        "fedFunds": "Fed Funds Rate"
+      },
+      "eu": {
+        "cpi": "Harmonised consumer price inflation (annual)",
+        "gdp": "Economic growth (quarterly)",
+        "estr": "Euro short-term rate",
+        "unavailable": "Euro Area data unavailable",
+        "source": "Eurostat · ECB · avg DE, FR, IT, ES"
+      },
+      "china": {
+        "unavailable": "China macro data unavailable",
+        "degraded": "Official China macro pulse is degraded; stale or delayed observations remain visible below.",
+        "releaseCalendar": "China release calendar",
+        "releaseCalendarUnavailable": "China release calendar unavailable",
+        "period": "Period {{period}}",
+        "released": "Released {{time}}",
+        "source": "Source: {{source}}",
+        "noObservationPeriod": "No observation period",
+        "releaseTimeUnavailable": "Release time unavailable",
+        "revisionUnavailable": "Revision state unavailable",
+        "sourceUnavailable": "Source unavailable",
+        "periodUnknown": "period unknown",
+        "units": {
+          "usd100m": "USD 100 million",
+          "cny100m": "CNY 100 million",
+          "usdMillion": "USD million",
+          "cnyMillion": "CNY million"
+        },
+        "states": {
+          "live": "Live",
+          "stale": "Stale",
+          "unavailable": "Unavailable",
+          "strengthening": "Strengthening",
+          "weakening": "Weakening",
+          "unchanged": "Unchanged",
+          "sourceBlocked": "Source blocked",
+          "sourceUnavailable": "Source unavailable",
+          "rateLimited": "Rate limited",
+          "schemaMismatch": "Schema mismatch",
+          "observationStale": "Observation stale",
+          "transportStale": "Transport stale",
+          "transportRecovering": "Transport recovering",
+          "transportUnavailable": "Transport unavailable"
+        },
+        "periodKinds": {
+          "month": "month",
+          "quarter": "quarter",
+          "year": "year",
+          "cumulativeYear": "cumulative year",
+          "pointInTime": "point in time"
+        },
+        "revisions": {
+          "original": "original",
+          "preliminary": "preliminary",
+          "revised": "revised",
+          "corrected": "corrected",
+          "cancelled": "cancelled",
+          "final": "final"
+        },
+        "releaseStatuses": {
+          "known": "known",
+          "scheduled": "scheduled",
+          "confirmed": "confirmed",
+          "provisional": "provisional",
+          "tentative": "tentative",
+          "released": "released",
+          "delayed": "delayed",
+          "cancelled": "cancelled"
+        }
+      }
     },
     "monitors": {
       "infoTooltip": "<strong>Keyword Monitors</strong> Add any term to track live news mentions across all WorldMonitor sources. Results update in real time as matching articles are ingested."
@@ -2645,7 +3164,27 @@
       "infoTooltip": "<strong>World Clock</strong> Live local times and market session status for major global financial centers. Shows open/closed status for NYSE, LSE, TSE, SGX, and other exchanges."
     },
     "yieldCurve": {
-      "infoTooltip": "<strong>Yield Curve &amp; Rates</strong> US Treasury yield curve (2Y, 5Y, 10Y, 30Y) and key rate spreads including the 10Y-2Y inversion indicator. Also shows Euro area rates (EURIBOR, ESTR). An inverted curve historically precedes recessions. Source: Federal Reserve Economic Data."
+      "infoTooltip": "<strong>Yield curves</strong> US Treasury curve (1M to 30Y) against the previous session and the euro area AAA curve; French OAT curve (1Y to 30Y, Banque de France TEC) when available; euro short rates (€STR, EURIBOR). An inverted curve has historically preceded recessions. Sources: FRED, ECB, Banque de France.",
+      "noData": "No yield data available",
+      "loadFailed": "Failed to load the yield curve",
+      "ecbUnavailable": "ECB rate data unavailable",
+      "chartLabel": "Government yield curve by maturity",
+      "usCurve": "US curve",
+      "frCurve": "France curve",
+      "ecbRates": "ECB rates",
+      "inverted": "INVERTED",
+      "normal": "NORMAL",
+      "spread2s10s": "2Y-10Y spread:",
+      "bp": "bp",
+      "legendUsCurrent": "US (latest)",
+      "legendUsPrior": "US (previous)",
+      "legendAaa": "Euro area AAA (ECB)",
+      "legendFrCurrent": "France OAT ({{date}})",
+      "legendFrPrior": "France OAT (previous)",
+      "sourceFredEcb": "Source: FRED / ECB",
+      "sourceEcb": "Source: ECB",
+      "sourceBdf": "Source: Banque de France (TEC)",
+      "estr": "€STR"
     },
     "proBanner": {
       "badge": "PRO",

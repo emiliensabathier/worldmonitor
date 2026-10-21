@@ -45,8 +45,21 @@ echo "== seeders and relay"
 DEPLOYED_BEFORE=$(git -C "$DEPLOY_DIR" rev-parse HEAD)
 git -C "$DEPLOY_DIR" fetch -q "$PWD" "$HEAD_COMMIT"
 git -C "$DEPLOY_DIR" checkout -q --detach "$HEAD_COMMIT"
-if ! git -C "$DEPLOY_DIR" diff --quiet "$DEPLOYED_BEFORE" "$HEAD_COMMIT" -- scripts shared Dockerfile.relay; then
+if ! git -C "$DEPLOY_DIR" diff --quiet "$DEPLOYED_BEFORE" "$HEAD_COMMIT" -- scripts shared Dockerfile.relay docker-compose.yml; then
   (cd "$DEPLOY_DIR" && sudo docker compose build ais-relay && sudo docker compose up -d --no-build ais-relay)
+fi
+
+# Timers versioned in selfhost/systemd: install the ones that changed and keep them enabled.
+changed_units=0
+for unit in selfhost/systemd/*.service selfhost/systemd/*.timer; do
+  if ! sudo cmp -s "$unit" "/etc/systemd/system/$(basename "$unit")"; then
+    sudo install -m 644 "$unit" /etc/systemd/system/
+    changed_units=1
+  fi
+done
+if [ "$changed_units" = 1 ]; then
+  sudo systemctl daemon-reload
+  for timer in selfhost/systemd/*.timer; do sudo systemctl enable --now "$(basename "$timer")"; done
 fi
 
 echo "== source offer"

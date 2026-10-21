@@ -77,7 +77,8 @@ services:
       RELAY_SHARED_SECRET: "${RELAY_SHARED_SECRET:?RELAY_SHARED_SECRET required — generate with: openssl rand -hex 32}"
       AISSTREAM_API_KEY: "${AISSTREAM_API_KEY:-}"
       FINNHUB_API_KEY: "${FINNHUB_API_KEY:-}"
-      MARKET_YAHOO_REFRESH_INTERVAL_MS: "${MARKET_YAHOO_REFRESH_INTERVAL_MS:-900000}"
+      # Sabathier Terminal: one VPS, ~110 symbols, so Yahoo can follow the 5-min seed loop (upstream: 15 min).
+      MARKET_YAHOO_REFRESH_INTERVAL_MS: "${MARKET_YAHOO_REFRESH_INTERVAL_MS:-300000}"
       UPSTASH_REDIS_REST_URL: "http://redis-rest:80"
       UPSTASH_REDIS_REST_TOKEN: "${REDIS_TOKEN:?REDIS_TOKEN required — generate with: openssl rand -hex 32}"
       UPSTASH_ALLOW_INSECURE_HTTP: "true"
