@@ -17,8 +17,8 @@ loadEnvFile(import.meta.url);
 export const CANONICAL_KEY = 'economic:rates-board:v1';
 const TTL_SECONDS = 3 * 24 * 3600;
 const ECB_API = 'https://data-api.ecb.europa.eu/service/data';
-const WEBSTAT_API = 'https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets';
-const OAT_TEC10_DATASET = 'fm-d-fr-eur-fr2-bb-frmoytec10-hsta';
+const WEBSTAT_OBSERVATIONS = 'https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets/observations/exports/json';
+const OAT_TEC10_SERIES = 'FM.D.FR.EUR.FR2.BB.FRMOYTEC10.HSTA';
 
 // ─── Pure helpers (exported for tests) ──────────────────────────────────────────
 
@@ -58,7 +58,8 @@ function splitCsvLine(line) {
 /** Webstat (Opendatasoft) records → [{ date, value }] ascending, whatever the period and value field names. */
 export function parseWebstatRecords(payload) {
   const out = [];
-  for (const record of payload?.results ?? []) {
+  // The exports endpoint answers a bare array; the records endpoint wraps it in { results }.
+  for (const record of Array.isArray(payload) ? payload : payload?.results ?? []) {
     const dateField = Object.keys(record).find((k) => /^time_period/i.test(k) || /^date/i.test(k));
     const valueField = Object.keys(record).find((k) => /obs_value|^valeur|^value/i.test(k));
     const date = dateField ? String(record[dateField]).slice(0, 10) : null;
@@ -138,7 +139,13 @@ async function fetchOatDaily() {
   const key = process.env.BANQUE_DE_FRANCE_API_KEY;
   if (!key) return null;
   try {
-    const res = await fetch(`${WEBSTAT_API}/${OAT_TEC10_DATASET}/records?limit=30&order_by=time_period_end%20desc`, {
+    const query = new URLSearchParams({
+      select: 'time_period_start,obs_value',
+      where: `series_key="${OAT_TEC10_SERIES}"`,
+      order_by: 'time_period_start desc',
+      limit: '30',
+    });
+    const res = await fetch(`${WEBSTAT_OBSERVATIONS}?${query}`, {
       headers: { Accept: 'application/json', Authorization: `Apikey ${key}`, 'User-Agent': CHROME_UA },
       signal: AbortSignal.timeout(20_000),
     });

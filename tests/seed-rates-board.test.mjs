@@ -33,6 +33,14 @@ describe('seed-rates-board', () => {
     assert.deepEqual(obs, [{ date: '2026-10-17', value: 3.38 }, { date: '2026-10-20', value: 3.412 }]);
   });
 
+  it('reads the bare array the Webstat observations export returns', () => {
+    const obs = parseWebstatRecords([
+      { time_period_start: '2026-10-20', obs_value: 3.412 },
+      { time_period_start: '2026-10-17', obs_value: 3.38 },
+    ]);
+    assert.deepEqual(obs, [{ date: '2026-10-17', value: 3.38 }, { date: '2026-10-20', value: 3.412 }]);
+  });
+
   it('builds a row from the last two observations', () => {
     assert.deepEqual(
       rowFrom('DE', 'Bund', [{ date: '2026-08', value: 3.185 }, { date: '2026-09', value: 3.473 }], 'monthly', 'ECB'),
