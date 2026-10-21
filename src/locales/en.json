@@ -456,6 +456,7 @@
     "liveNews": "Live News",
     "markets": "Markets",
     "fxMajors": "Major currencies",
+    "ratesBoard": "Rates & central banks",
     "marketImplications": "AI Market Implications",
     "map": "Global Situation",
     "techMap": "Global Tech",
@@ -2210,6 +2211,24 @@
     },
     "disasterCorrelation": {
       "infoTooltip": "<strong>Disaster Cascade</strong> Detects converging natural disaster and infrastructure signals:<ul><li>Correlates earthquakes, wildfires, floods, and weather extremes</li><li>Tracks cascading effects on infrastructure and supply chains</li><li>Highlights regions with compounding disaster risk</li></ul>Click a card to zoom to the affected region."
+    },
+    "ratesBoard": {
+      "infoTooltip": "<strong>Rates & central banks</strong> 10-year government yields (France OAT from the Banque de France when available, Germany, Italy and Spain from the ECB monthly convergence series, euro area AAA curve, US Treasury, UK Gilt, Japan JGB), spreads in basis points, and policy rates (ECB deposit facility daily; Fed, BoE, BoJ, SNB and BoC from the BIS, Fed as the target range midpoint).",
+      "sovereign": "10-year government bonds",
+      "spreads": "Spreads",
+      "policy": "Policy rates",
+      "bond": "Bond",
+      "yield": "Yield",
+      "changeBp": "Chg bp",
+      "date": "Date",
+      "spread": "Spread",
+      "bp": "bp",
+      "centralBank": "Central bank",
+      "rate": "Rate",
+      "lastMoveBp": "Last move bp",
+      "monthly": "monthly",
+      "euroArea": "Euro area",
+      "sources": "Sources: {{sources}}"
     },
     "fxMajors": {
       "infoTooltip": "<strong>Major currencies</strong> EUR/USD, GBP/USD, USD/JPY and the other majors, plus the dollar index (DXY): rate, day change and recent trend, from seeded Yahoo Finance quotes. Click a pair for its chart."

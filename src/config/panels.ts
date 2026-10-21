@@ -469,6 +469,7 @@ export const FINANCE_PANELS: Record<string, PanelConfig> = {
   bonds: { name: 'Fixed Income', enabled: true, priority: 1 },
   forex: { name: 'Forex & Currencies', enabled: true, priority: 1 },
   'fx-majors': { name: 'Major Currencies', enabled: true, priority: 1 },
+  'rates-board': { name: 'Rates & Central Banks', enabled: true, priority: 1 },
   commodities: { name: 'Metals & Materials', enabled: true, priority: 1 },
   'energy-complex': { name: 'Energy Complex', enabled: true, priority: 1 },
   centralbanks: { name: 'Central Bank Watch', enabled: true, priority: 1 },
@@ -1569,7 +1570,7 @@ export const PANEL_CATEGORY_MAP: Record<string, { labelKey: string; panelKeys: s
   },
   fixedIncomeFx: {
     labelKey: 'header.panelCatFixedIncomeFx',
-    panelKeys: ['fx-majors', 'forex', 'fx', 'bonds'],
+    panelKeys: ['fx-majors', 'rates-board', 'forex', 'fx', 'bonds'],
     variants: ['finance'],
   },
   finCommodities: {

@@ -2907,6 +2907,9 @@
           "path": "scripts/seed-ecb-short-rates.mjs"
         },
         {
+          "path": "scripts/seed-rates-board.mjs"
+        },
+        {
           "path": "scripts/seed-yield-curve-eu.mjs"
         }
       ]
@@ -10625,6 +10628,20 @@
       "references": [
         {
           "path": "shared/pinned-webcams.ts"
+        }
+      ]
+    },
+    {
+      "host": "webstat.banque-france.fr",
+      "provider": "webstat.banque-france.fr",
+      "kind": "structured",
+      "observed": true,
+      "license": "Provider terms for this upstream API/dataset; verify before redistribution",
+      "attribution": "Credit webstat.banque-france.fr and link to the original upstream API/dataset.",
+      "status": "terms-review",
+      "references": [
+        {
+          "path": "scripts/seed-rates-board.mjs"
         }
       ]
     },

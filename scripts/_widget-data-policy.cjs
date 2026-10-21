@@ -54,6 +54,7 @@ const BOOTSTRAP = [
   { key: "economicStress", group: "Economy", holds: "US economic stress composite 0-100 with label and 6 weighted components (yield curve T10Y2Y…)" },
   { key: "ecbFxRates", group: "Economy", holds: "ECB euro reference rates (EURUSD, EURGBP, EURJPY, EURCHF, EURCNY…): rate, 1-day change, date" },
   { key: "cbrRates", group: "Economy", holds: "Bank of Russia RUB rate per currency with 1-day change; key rate with 11 dated changes since 2024-10" },
+  { key: "ratesBoard", group: "Economy", holds: "10-year sovereign yields (OAT, Bund, BTP, Bonos, euro area AAA, T-Note, Gilt, JGB), OAT-Bund, BTP-Bund and US 2s10s spreads in bp, ECB, Fed, BoE, BoJ, SNB and BoC policy rates" },
   { key: "fxYoy", group: "Economy", holds: "45 currencies vs USD: current and year-ago rate, y/y change %, 24-month drawdown, peak/trough dates" },
   { key: "chinaMacro", group: "Economy", holds: "China NBS macro: 12 indicators (industrial value added…) with value, unit and observation month" },
   { key: "chinaReleaseCalendar", group: "Economy", holds: "China 2026 official data release calendar: 154 events with release date, time and agency" },

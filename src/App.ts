@@ -88,6 +88,7 @@ import type { GroceryBasketPanel } from '@/components/GroceryBasketPanel';
 import type { BigMacPanel } from '@/components/BigMacPanel';
 import type { FuelPricesPanel } from '@/components/FuelPricesPanel';
 import type { FxPanel } from '@/components/FxPanel';
+import type { RatesBoardPanel } from '@/components/RatesBoardPanel';
 import type { FaoFoodPriceIndexPanel } from '@/components/FaoFoodPriceIndexPanel';
 import type { OilInventoriesPanel } from '@/components/OilInventoriesPanel';
 import type { PipelineStatusPanel } from '@/components/PipelineStatusPanel';
@@ -811,6 +812,10 @@ export class App {
     if (shouldPrime('fuel-prices')) {
       const panel = this.state.panels['fuel-prices'] as FuelPricesPanel | undefined;
       if (panel) primeTask('fuel-prices', () => panel.fetchData());
+    }
+    if (shouldPrime('rates-board')) {
+      const panel = this.state.panels['rates-board'] as RatesBoardPanel | undefined;
+      if (panel) primeTask('rates-board', () => panel.fetchData());
     }
     if (shouldPrime('fx')) {
       const panel = this.state.panels['fx'] as FxPanel | undefined;
@@ -4124,6 +4129,13 @@ export class App {
       () => (this.state.panels['fuel-prices'] as FuelPricesPanel).fetchData(),
       REFRESH_INTERVALS.fuelPrices,
       () => this.isPanelNearViewport('fuel-prices')
+    );
+
+    this.refreshScheduler.scheduleRefresh(
+      'rates-board',
+      () => (this.state.panels['rates-board'] as RatesBoardPanel).fetchData(),
+      REFRESH_INTERVALS.ratesBoard,
+      () => this.isPanelNearViewport('rates-board')
     );
 
     this.refreshScheduler.scheduleRefresh(

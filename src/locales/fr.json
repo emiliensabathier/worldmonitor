@@ -389,6 +389,7 @@
     "liveNews": "Actualités en direct",
     "markets": "Marchés",
     "fxMajors": "Devises majeures",
+    "ratesBoard": "Taux & banques centrales",
     "map": "Situation mondiale",
     "techMap": "Tech mondiale",
     "status": "État du système",
@@ -2461,6 +2462,24 @@
     },
     "disasterCorrelation": {
       "infoTooltip": "<strong>Cascade de catastrophes</strong> Détecte les signaux convergents de catastrophe naturelle et d'infrastructure :<ul><li>Corrélie les tremblements de terre, les incendies, les inondations et les extrêmes météorologiques</li><li>Suit les effets en cascade sur l'infrastructure et la chaîne d'approvisionnement</li><li>Met en évidence les régions avec un risque de catastrophe composé</li></ul>Cliquez sur une carte pour zoomer sur la région affectée."
+    },
+    "ratesBoard": {
+      "infoTooltip": "<strong>Taux & banques centrales</strong> Rendements des emprunts d’État à 10 ans (OAT d’après la Banque de France quand elle est disponible, Allemagne, Italie et Espagne d’après la série mensuelle de convergence de la BCE, courbe AAA de la zone euro, Treasury américain, Gilt britannique, JGB japonais), écarts en points de base et taux directeurs (taux de dépôt BCE quotidien ; Fed, BoE, BoJ, BNS et BoC d’après la BRI, Fed au milieu de sa fourchette).",
+      "sovereign": "Emprunts d’État à 10 ans",
+      "spreads": "Écarts",
+      "policy": "Taux directeurs",
+      "bond": "Titre",
+      "yield": "Taux",
+      "changeBp": "Var. pb",
+      "date": "Date",
+      "spread": "Écart",
+      "bp": "pb",
+      "centralBank": "Banque centrale",
+      "rate": "Taux",
+      "lastMoveBp": "Dern. mouv. pb",
+      "monthly": "mensuel",
+      "euroArea": "Zone euro",
+      "sources": "Sources : {{sources}}"
     },
     "fxMajors": {
       "infoTooltip": "<strong>Devises majeures</strong> EUR/USD, GBP/USD, USD/JPY et les autres grandes paires, plus l’indice dollar (DXY) : cours, variation du jour et tendance récente, d’après les cotations Yahoo Finance préchargées. Cliquez sur une paire pour son graphique."

@@ -111,6 +111,7 @@ export const BOOTSTRAP_CACHE_KEYS = Object.freeze({
   ecbFxRates: 'economic:ecb-fx-rates:v1',
   cbrRates: 'economic:cbr-rates:v1',
   fxYoy: 'economic:fx:yoy:v1',
+  ratesBoard: 'economic:rates-board:v1',
   sharedFxRates: 'shared:fx-rates:v1',
   euFsi: 'economic:fsi-eu:v1',
   shippingStress: 'supply_chain:shipping_stress:v1',
@@ -219,6 +220,8 @@ const ON_DEMAND_KEY_NAMES = new Set([
   // Sets with a bare quote matcher, so one apostrophe in prose opens a phantom
   // string and gets registered as a duplicate key.
   'fxYoy', 'sharedFxRates',
+  // Sabathier Terminal GOVT screen (10-year yields, spreads, policy rates), fetched when it opens.
+  'ratesBoard',
   'marketCorrelationSeries',
   // Toronto's live road-restrictions snapshot is about 2 MB. Keep it off the
   // global FAST payload and fetch it only when the Canada-roads layer renders.

@@ -21,7 +21,7 @@ export interface TerminalFunction {
 export const TERMINAL_FUNCTIONS: readonly TerminalFunction[] = [
   { code: 'TOP', label: { en: 'Overview', fr: "Vue d'ensemble" }, areas: ['markets map insights', 'markets live-news finance-labs'], columns: '1.1fr 1.4fr 1fr', mobile: ['markets', 'insights', 'live-news', 'map', 'finance-labs'] },
   { code: 'WEI', label: { en: 'Equities', fr: 'Actions' }, areas: ['markets heatmap earnings-calendar', 'markets market-breadth earnings-calendar'], columns: '1fr 1.3fr 1fr', mobile: ['markets', 'heatmap', 'market-breadth', 'earnings-calendar'] },
-  { code: 'GOVT', label: { en: 'Rates', fr: 'Taux' }, areas: ['yield-curve yield-curve centralbanks', 'bonds bonds centralbanks'], rows: '1.2fr 1fr', mobile: ['yield-curve', 'bonds', 'centralbanks'] },
+  { code: 'GOVT', label: { en: 'Rates', fr: 'Taux' }, areas: ['yield-curve rates-board'], columns: '1.3fr 1fr', mobile: ['rates-board', 'yield-curve'] },
   { code: 'FX', label: { en: 'FX', fr: 'Devises' }, areas: ['fx-majors fx crypto'], columns: '1fr 1.3fr 1fr', mobile: ['fx-majors', 'fx', 'crypto'] },
   { code: 'CMDTY', label: { en: 'Commodities', fr: 'Matières premières' }, areas: ['commodities energy-complex map', 'gold-intelligence energy-complex map'], columns: '1fr 1fr 1.3fr', mobile: ['commodities', 'energy-complex', 'gold-intelligence', 'map'] },
   { code: 'ECO', label: { en: 'Macro & risk', fr: 'Macro & risque' }, areas: ['economic-calendar macro-tiles fsi', 'economic-calendar macro-signals fear-greed', 'consumer-prices polymarket fear-greed'], mobile: ['macro-tiles', 'economic-calendar', 'fsi', 'macro-signals', 'fear-greed', 'consumer-prices', 'polymarket'] },

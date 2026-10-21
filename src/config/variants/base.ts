@@ -56,6 +56,7 @@ export const REFRESH_INTERVALS = {
   gulfEconomies: 10 * 60 * 1000,
   groceryBasket: 6 * 60 * 60 * 1000,
   fuelPrices: 6 * 60 * 60 * 1000,
+  ratesBoard: 60 * 60 * 1000, // the seeder runs about hourly; ECB and Banque de France publish once a business day
   fx: 6 * 60 * 60 * 1000, // all three FX keys are daily seeds; 6h picks up the new bar without polling a static payload
 
   faoFoodPriceIndex: 24 * 60 * 60 * 1000, // monthly data; refresh daily is sufficient
