@@ -844,7 +844,7 @@ describe('durable last-good wiring (#7084)', () => {
     assert.equal(command[3], lastGoodKey('full', 'en'));
     assert.equal(command[5], attemptMetaKey('full', 'en'));
     assert.equal(command[6], 'news:digest:v1:full:en');
-    assert.equal(Number(command[12]), 900);
+    assert.equal(Number(command[12]), 300); // Sabathier Terminal: 5-min digest lifetime (upstream 900)
   });
 
   it("writes /trust's label counts only when the gate accepts the build they describe (#9093)", async () => {

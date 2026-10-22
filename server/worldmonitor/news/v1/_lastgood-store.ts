@@ -38,7 +38,8 @@ import {
 // Private wire value used by cachedFetchJsonWithMeta. This write is kept here
 // because the attempt row and sentinel must become visible atomically.
 const DIGEST_NEGATIVE_SENTINEL = '__WM_NEG__';
-const DIGEST_CACHE_TTL_S = 900;
+// Sabathier Terminal: same 5-min lifetime as the digest cache call in list-feed-digest.ts (upstream: 900).
+const DIGEST_CACHE_TTL_S = 300;
 const DIGEST_REJECTION_TTL_S = 120;
 
 export interface FailedDigestAttempt {
