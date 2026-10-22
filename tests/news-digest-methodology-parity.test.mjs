@@ -548,7 +548,7 @@ describe('news digest methodology parity', () => {
 
     assert.equal(
       healthyTtl,
-      3600,
+      600,
       'healthy feed TTL changed; update data-sources and methodology docs plus this disclosure guard together',
     );
     assert.equal(
@@ -558,7 +558,7 @@ describe('news digest methodology parity', () => {
     );
     assert.equal(
       Number(digestTtl?.[1]?.replace(/_/g, '')),
-      900,
+      300,
       'digest cache TTL changed; update docs/data-sources.mdx and this disclosure guard together',
     );
 
@@ -566,7 +566,7 @@ describe('news digest methodology parity', () => {
       assert.ok(text.includes(`${healthyTtl} seconds`), 'docs must mention healthy feed TTL');
       assert.ok(text.includes(`${emptyTtl} seconds`), 'docs must mention empty or failed feed TTL');
     }
-    assert.ok(dataSourcesText.includes('900-second TTL'), 'data sources page must mention digest TTL');
+    assert.ok(dataSourcesText.includes('300-second TTL'), 'data sources page must mention digest TTL');
     assert.doesNotMatch(
       dataSourcesText,
       /cached\s+600s\s+per URL|per URL for 600 seconds/i,

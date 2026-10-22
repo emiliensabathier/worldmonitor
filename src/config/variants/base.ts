@@ -10,7 +10,7 @@ export { IDLE_PAUSE_MS } from '../idle';
 
 // Refresh intervals (ms) - shared across all variants
 export const REFRESH_INTERVALS = {
-  feeds: 20 * 60 * 1000,
+  feeds: 5 * 60 * 1000, // Sabathier Terminal: the server rebuilds the digest every 5 min (upstream: 20 min)
   markets: 3 * 60 * 1000, // Sabathier Terminal: the relay reseeds quotes every 5 min, the API caches 5 min
   crypto: 12 * 60 * 1000,
   predictions: 15 * 60 * 1000,

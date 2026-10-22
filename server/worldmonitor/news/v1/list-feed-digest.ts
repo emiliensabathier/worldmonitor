@@ -875,7 +875,8 @@ export interface ParseResult {
 // split, a single upstream-CF-challenge or transient outage would pin the
 // panel to "No news available" for the full hour. 5min keeps load on
 // upstream bounded while still recovering quickly when upstream heals.
-const CACHE_TTL_HEALTHY_S = 3600;
+// Sabathier Terminal (one self-hosted site): ten minutes so headlines show within minutes (upstream: 3600).
+const CACHE_TTL_HEALTHY_S = 600;
 const CACHE_TTL_EMPTY_S = 300;
 
 /**
@@ -2214,7 +2215,7 @@ export async function listFeedDigest(
     const cachedResult = await settleBeforeDeadline(
       cachedFetchJsonWithMeta<ListFeedDigestResponse>(
         digestCacheKey,
-        900,
+        300,
         async () => {
           leaderSlot = beginDigestAttempt(variant, lang, attemptedAt);
           try {
